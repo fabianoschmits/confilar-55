@@ -13,6 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CommentSection from '@/components/CommentSection';
+import HashtagMentionInput from '@/components/HashtagMentionInput';
+import ReactionButton from '@/components/ReactionButton';
+import BlockReportMenu from '@/components/BlockReportMenu';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface Post {
@@ -34,6 +37,7 @@ const Feed = () => {
   const [loading, setLoading] = useState(true);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState('');
+  const [extractedHashtags, setExtractedHashtags] = useState<string[]>([]);
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
@@ -93,6 +97,7 @@ const Feed = () => {
           content: newPost,
           is_anonymous: isAnonymous,
           user_id: user?.id,
+          hashtags: extractedHashtags.length > 0 ? extractedHashtags : null,
         }]);
 
       if (error) throw error;
@@ -217,11 +222,13 @@ const Feed = () => {
             </CardHeader>
             {showCreatePost && (
               <CardContent className="space-y-4">
-                <Textarea
-                  placeholder="Descreva seu serviço ou trabalho... Seja respeitoso e autêntico."
+                <HashtagMentionInput
                   value={newPost}
-                  onChange={(e) => setNewPost(e.target.value)}
+                  onChange={setNewPost}
+                  onHashtagsExtracted={setExtractedHashtags}
+                  placeholder="Descreva seu serviço ou trabalho... Use #hashtags e @mentions. Seja respeitoso e autêntico."
                   className="min-h-[120px]"
+                  rows={5}
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -326,50 +333,52 @@ const Feed = () => {
                       <p className="text-sm leading-relaxed">{post.content}</p>
 
                       {/* Ações */}
-                      <div className="flex items-center space-x-6 pt-2 border-t">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleLike(post.id)}
-                          className={`transition-all duration-200 hover:scale-105 ${
-                            likedPosts.has(post.id) 
-                              ? 'text-coral hover:text-coral/80' 
-                              : 'text-muted-foreground hover:text-coral'
-                          }`}
-                        >
-                          <Heart 
-                            className={`h-4 w-4 mr-2 ${
-                              likedPosts.has(post.id) ? 'fill-current' : ''
-                            }`} 
+                      <div className="flex items-center justify-between pt-2 border-t">
+                        <div className="flex items-center space-x-6">
+                          <ReactionButton 
+                            postId={post.id}
+                            reactions={post.likes || []}
+                            onReactionChange={(count) => {
+                              setPosts(prevPosts => 
+                                prevPosts.map(p => 
+                                  p.id === post.id 
+                                    ? { ...p, likes: Array(count).fill({ id: 'temp' }) }
+                                    : p
+                                )
+                              );
+                            }}
                           />
-                          {post.likes?.length || 0}
-                        </Button>
-                        <CommentSection 
-                          postId={post.id}
-                          commentsCount={post.comments?.length || 0}
-                          onCommentsChange={(count) => handleCommentsChange(post.id, count)}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-105"
-                          onClick={() => {
-                            navigator.share?.({
-                              title: 'Serviço',
-                              text: post.content,
-                              url: window.location.href
-                            }).catch(() => {
-                              navigator.clipboard.writeText(window.location.href);
-                              toast({
-                                title: "Link copiado!",
-                                description: "O link foi copiado para a área de transferência."
+                          <CommentSection 
+                            postId={post.id}
+                            commentsCount={post.comments?.length || 0}
+                            onCommentsChange={(count) => handleCommentsChange(post.id, count)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-105"
+                            onClick={() => {
+                              navigator.share?.({
+                                title: 'Serviço',
+                                text: post.content,
+                                url: window.location.href
+                              }).catch(() => {
+                                navigator.clipboard.writeText(window.location.href);
+                                toast({
+                                  title: "Link copiado!",
+                                  description: "O link foi copiado para a área de transferência."
+                                });
                               });
-                            });
-                          }}
-                        >
-                          <Share2 className="h-4 w-4 mr-2" />
-                          Compartilhar
-                        </Button>
+                            }}
+                          >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Compartilhar
+                          </Button>
+                        </div>
+                        <BlockReportMenu 
+                          userId={post.user_id}
+                          postId={post.id}
+                        />
                       </div>
                     </div>
                   </CardContent>

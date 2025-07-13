@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Feed from "./pages/Feed";
 import Search from "./pages/Search";
+import Explore from "./pages/Explore";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
@@ -43,6 +44,11 @@ const App = () => (
             <Route path="/buscar" element={
               <ProtectedRoute>
                 <Search />
+              </ProtectedRoute>
+            } />
+            <Route path="/explorar" element={
+              <ProtectedRoute>
+                <Explore />
               </ProtectedRoute>
             } />
             <Route path="/chat/:userId" element={

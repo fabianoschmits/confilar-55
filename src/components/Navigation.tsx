@@ -14,7 +14,8 @@ import {
   Settings,
   LogOut,
   Plus,
-  Shield
+  Shield,
+  TrendingUp
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import confiarLogo from "@/assets/confilar-logo.png";
@@ -26,6 +27,7 @@ const Navigation = () => {
 
   const navItems = [
     { icon: Home, label: "Início", path: "/feed", badge: null, description: "Atividades de todos os usuários" },
+    { icon: TrendingUp, label: "Explorar", path: "/explorar", badge: null, description: "Descubra conteúdo em alta" },
     { icon: Search, label: "Buscar", path: "/buscar", badge: null, description: "Buscar posts e usuários" },
     { icon: MessageCircle, label: "Chat", path: "/chat", badge: 3, description: "Conversas" },
     { icon: Bell, label: "Notificações", path: "/notificacoes", badge: 5, description: "Notificações" },

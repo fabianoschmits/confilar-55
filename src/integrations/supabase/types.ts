@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_user_id: string
+          blocker_user_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_user_id?: string
+          blocker_user_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -72,6 +93,33 @@ export type Database = {
           id?: string
           participant1_id?: string
           participant2_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      friend_requests: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_user_id: string
+          sender_user_id: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_user_id: string
+          sender_user_id: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_user_id?: string
+          sender_user_id?: string
+          status?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -201,10 +249,32 @@ export type Database = {
           },
         ]
       }
+      post_views: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       posts: {
         Row: {
           content: string
           created_at: string
+          hashtags: string[] | null
           id: string
           is_anonymous: boolean | null
           location: string | null
@@ -214,6 +284,7 @@ export type Database = {
         Insert: {
           content: string
           created_at?: string
+          hashtags?: string[] | null
           id?: string
           is_anonymous?: boolean | null
           location?: string | null
@@ -223,6 +294,7 @@ export type Database = {
         Update: {
           content?: string
           created_at?: string
+          hashtags?: string[] | null
           id?: string
           is_anonymous?: boolean | null
           location?: string | null
@@ -268,8 +340,12 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_private: boolean | null
+          is_verified: boolean | null
           location: string | null
           phone: string | null
+          show_email: boolean | null
+          show_phone: boolean | null
           updated_at: string
           user_id: string
         }
@@ -279,8 +355,12 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_private?: boolean | null
+          is_verified?: boolean | null
           location?: string | null
           phone?: string | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -290,10 +370,77 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_private?: boolean | null
+          is_verified?: boolean | null
           location?: string | null
           phone?: string | null
+          show_email?: boolean | null
+          show_phone?: boolean | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      reactions: {
+        Row: {
+          comment_id: string | null
+          created_at: string
+          id: string
+          post_id: string | null
+          reaction_type: Database["public"]["Enums"]["reaction_type"]
+          user_id: string
+        }
+        Insert: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          reaction_type: Database["public"]["Enums"]["reaction_type"]
+          user_id: string
+        }
+        Update: {
+          comment_id?: string | null
+          created_at?: string
+          id?: string
+          post_id?: string | null
+          reaction_type?: Database["public"]["Enums"]["reaction_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          reported_comment_id: string | null
+          reported_post_id: string | null
+          reported_user_id: string | null
+          reporter_user_id: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason: string
+          reported_comment_id?: string | null
+          reported_post_id?: string | null
+          reported_user_id?: string | null
+          reporter_user_id: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason?: string
+          reported_comment_id?: string | null
+          reported_post_id?: string | null
+          reported_user_id?: string | null
+          reporter_user_id?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -413,6 +560,7 @@ export type Database = {
       }
     }
     Enums: {
+      reaction_type: "like" | "love" | "laugh" | "angry" | "sad" | "wow"
       user_role: "user" | "admin" | "moderator"
     }
     CompositeTypes: {
@@ -541,6 +689,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      reaction_type: ["like", "love", "laugh", "angry", "sad", "wow"],
       user_role: ["user", "admin", "moderator"],
     },
   },
