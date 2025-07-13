@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,7 +91,48 @@ const portfolioImages = [
 ];
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("sobre");
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      setProfile(data);
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-muted/30 pb-20 md:pb-0 flex items-center justify-center">
+        <div className="text-center">Carregando perfil...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
@@ -104,9 +147,9 @@ const Profile = () => {
               <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
                 <div className="relative">
                   <Avatar className="h-32 w-32 mb-4">
-                    <AvatarImage src={userProfile.avatar || undefined} />
+                    <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-primary text-white text-3xl">
-                      {userProfile.name.split(' ').map(n => n[0]).join('')}
+                      {profile?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <Button 
@@ -117,7 +160,11 @@ const Profile = () => {
                   </Button>
                 </div>
                 
-                <Button variant="outline" className="w-full md:w-auto">
+                <Button 
+                  variant="outline" 
+                  className="w-full md:w-auto"
+                  onClick={() => navigate('/perfil/editar')}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Editar Perfil
                 </Button>
@@ -128,7 +175,7 @@ const Profile = () => {
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
-                      <h1 className="text-3xl font-bold">{userProfile.name}</h1>
+                      <h1 className="text-3xl font-bold">{profile?.full_name || 'Usuário'}</h1>
                       {userProfile.verified && (
                         <Badge className="bg-blue-500">
                           <Shield className="h-3 w-3 mr-1" />
@@ -143,7 +190,7 @@ const Profile = () => {
                       )}
                     </div>
                     
-                    <p className="text-xl text-muted-foreground mb-3">{userProfile.role}</p>
+                    <p className="text-xl text-muted-foreground mb-3">Profissional ConfiLar</p>
                     
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                       <div className="flex items-center space-x-1">
@@ -153,7 +200,7 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />
-                        <span>{userProfile.location}</span>
+                        <span>{profile?.location || 'Localização não informada'}</span>
                       </div>
                       <div className="flex items-center space-x-1">
                         <Calendar className="h-4 w-4" />
@@ -226,7 +273,7 @@ const Profile = () => {
                   <h3 className="text-lg font-semibold">Sobre Mim</h3>
                 </CardHeader>
                 <CardContent>
-                  <p className="leading-relaxed mb-4">{userProfile.bio}</p>
+                  <p className="leading-relaxed mb-4">{profile?.bio || 'Biografia não informada ainda.'}</p>
                   
                   <div className="mb-4">
                     <h4 className="font-semibold mb-2">Serviços Oferecidos</h4>
@@ -370,7 +417,7 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="font-semibold">Telefone</p>
-                      <p className="text-muted-foreground">{userProfile.phone}</p>
+                      <p className="text-muted-foreground">{profile?.phone || 'Não informado'}</p>
                     </div>
                   </div>
                   

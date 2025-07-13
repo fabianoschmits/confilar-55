@@ -10,6 +10,7 @@ import Feed from "./pages/Feed";
 import Search from "./pages/Search";
 import Chat from "./pages/Chat";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
 import Notifications from "./pages/Notifications";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/buscar" element={<Search />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/perfil" element={<Profile />} />
+            <Route path="/perfil/editar" element={<EditProfile />} />
             <Route path="/notificacoes" element={<Notifications />} />
             <Route path="/configuracoes" element={<Settings />} />
             <Route path="/onboarding" element={<Onboarding />} />
