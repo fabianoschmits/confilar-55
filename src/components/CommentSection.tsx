@@ -41,17 +41,28 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: commentsData, error } = await supabase
         .from('comments')
-        .select(`
-          *,
-          profiles(full_name)
-        `)
+        .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setComments(data || []);
+
+      // Fetch profiles separately
+      const userIds = commentsData?.map(comment => comment.user_id) || [];
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('user_id, full_name')
+        .in('user_id', userIds);
+
+      // Combine comments with profiles
+      const commentsWithProfiles = commentsData?.map(comment => ({
+        ...comment,
+        profiles: profilesData?.find(p => p.user_id === comment.user_id) || null
+      })) || [];
+
+      setComments(commentsWithProfiles);
     } catch (error) {
       console.error('Erro ao carregar comentários:', error);
     } finally {

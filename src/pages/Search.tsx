@@ -37,20 +37,34 @@ const Search = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: postsData, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          profiles(full_name),
-          likes(id),
-          comments(id)
-        `)
+        .select('*')
         .ilike('content', `%${term}%`)
         .order('created_at', { ascending: false })
         .limit(20);
 
       if (error) throw error;
-      setResults(data || []);
+
+      // Fetch related data separately
+      const postIds = postsData?.map(post => post.id) || [];
+      const userIds = postsData?.map(post => post.user_id) || [];
+
+      const [profilesData, likesData, commentsData] = await Promise.all([
+        supabase.from('profiles').select('user_id, full_name').in('user_id', userIds),
+        supabase.from('likes').select('id, post_id').in('post_id', postIds),
+        supabase.from('comments').select('id, post_id').in('post_id', postIds)
+      ]);
+
+      // Combine data
+      const postsWithData = postsData?.map(post => ({
+        ...post,
+        profiles: profilesData.data?.find(p => p.user_id === post.user_id) || null,
+        likes: likesData.data?.filter(l => l.post_id === post.id) || [],
+        comments: commentsData.data?.filter(c => c.post_id === post.id) || []
+      })) || [];
+
+      setResults(postsWithData);
     } catch (error) {
       console.error('Erro na busca:', error);
       setResults([]);
@@ -74,7 +88,17 @@ const Search = () => {
         .limit(20);
 
       if (error) throw error;
-      setResults(data || []);
+      
+      // Transform user data to match SearchResult type
+      const userResults = data?.map(user => ({
+        ...user,
+        content: user.bio || '',
+        is_anonymous: false,
+        likes: [],
+        comments: []
+      })) || [];
+
+      setResults(userResults);
     } catch (error) {
       console.error('Erro na busca:', error);
       setResults([]);
