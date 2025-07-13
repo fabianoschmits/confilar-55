@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CommentSection from '@/components/CommentSection';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -39,6 +39,7 @@ const Feed = () => {
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPosts();
@@ -102,7 +103,7 @@ const Feed = () => {
       
       toast({
         title: "Post criado!",
-        description: "Sua confissão foi publicada.",
+        description: "Seu serviço foi publicado.",
       });
     } catch (error) {
       console.error('Erro ao criar post:', error);
@@ -191,21 +192,31 @@ const Feed = () => {
           <Card className="mb-6">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Compartilhe sua confissão</h2>
-                <Button
-                  variant={showCreatePost ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => setShowCreatePost(!showCreatePost)}
-                >
-                  <Edit3 className="h-4 w-4 mr-2" />
-                  {showCreatePost ? 'Cancelar' : 'Nova Confissão'}
-                </Button>
+                <h2 className="text-lg font-semibold">Compartilha Serviço</h2>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/postar-trabalho')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Trabalho
+                  </Button>
+                  <Button
+                    variant={showCreatePost ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => setShowCreatePost(!showCreatePost)}
+                  >
+                    <Edit3 className="h-4 w-4 mr-2" />
+                    {showCreatePost ? 'Cancelar' : 'Novo Serviço'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             {showCreatePost && (
               <CardContent className="space-y-4">
                 <Textarea
-                  placeholder="Conte sua confissão... Seja respeitoso e authentic."
+                  placeholder="Descreva seu serviço ou trabalho... Seja respeitoso e autêntico."
                   value={newPost}
                   onChange={(e) => setNewPost(e.target.value)}
                   className="min-h-[120px]"
@@ -249,12 +260,12 @@ const Feed = () => {
             <Card>
               <CardContent className="p-12 text-center">
                 <Edit3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhuma confissão ainda</h3>
+                <h3 className="text-lg font-medium mb-2">Nenhum serviço ainda</h3>
                 <p className="text-muted-foreground mb-4">
-                  Seja o primeiro a compartilhar uma confissão!
+                  Seja o primeiro a compartilhar um serviço!
                 </p>
                 <Button onClick={() => setShowCreatePost(true)}>
-                  Criar primeira confissão
+                  Criar primeiro serviço
                 </Button>
               </CardContent>
             </Card>
@@ -275,7 +286,7 @@ const Feed = () => {
                           <div>
                             <p className="font-medium text-sm">
                               {post.is_anonymous ? (
-                                'Confissão Anônima'
+                                'Serviço Anônimo'
                               ) : (
                                 <Link 
                                   to={`/perfil/${post.user_id}`}
@@ -336,7 +347,7 @@ const Feed = () => {
                           className="text-muted-foreground hover:text-primary"
                           onClick={() => {
                             navigator.share?.({
-                              title: 'Confissão',
+                              title: 'Serviço',
                               text: post.content,
                               url: window.location.href
                             }).catch(() => {

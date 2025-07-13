@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,11 +20,14 @@ import {
   MapPin,
   Lock,
   Trash2,
-  Download
+  Download,
+  UserCog,
+  Briefcase
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     messages: true,
     reviews: true,
@@ -36,6 +40,8 @@ const Settings = () => {
     showPhone: false,
     showEmail: false
   });
+
+  const [profileType] = useState('professional'); // Será obtido do banco
 
   return (
     <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
@@ -152,9 +158,28 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <Button className="btn-hero">
-                  Salvar alterações
-                </Button>
+                <div className="flex gap-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => navigate('/editar-perfil')}
+                    className="flex-1"
+                  >
+                    {profileType === 'professional' ? (
+                      <>
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Editar Perfil Profissional
+                      </>
+                    ) : (
+                      <>
+                        <UserCog className="h-4 w-4 mr-2" />
+                        Editar Perfil de Usuário
+                      </>
+                    )}
+                  </Button>
+                  <Button className="btn-hero">
+                    Salvar
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
