@@ -19,82 +19,19 @@ import {
   Clock,
   Heart,
   MessageCircle,
-  Share2
+  Share2,
+  Settings
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 
-// Mock data
-const userProfile = {
-  id: 1,
-  name: "Maria Santos",
-  role: "Diarista Profissional",
-  avatar: null,
-  rating: 4.9,
-  reviews: 127,
-  location: "São Paulo, SP",
-  memberSince: "Janeiro 2022",
-  verified: true,
-  premium: true,
-  bio: "Sou uma profissional dedicada com mais de 8 anos de experiência em limpeza residencial. Trabalho com carinho e atenção aos detalhes, sempre buscando deixar sua casa impecável. Utilizo produtos ecológicos e tenho total flexibilidade de horários.",
-  services: [
-    "Limpeza Geral",
-    "Organização",
-    "Passar Roupa",
-    "Lavar Louça",
-    "Limpeza de Vidros"
-  ],
-  hourlyRate: "R$ 35/hora",
-  availability: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"],
-  phone: "(11) 99999-9999",
-  email: "maria.santos@email.com",
-  stats: {
-    totalJobs: 245,
-    repeatClients: 89,
-    responseTime: "2h"
-  }
-};
-
-const reviews = [
-  {
-    id: 1,
-    user: "Ana Paula",
-    rating: 5,
-    comment: "Maria é excepcional! Muito cuidadosa e atenciosa. Minha casa ficou impecável!",
-    date: "Há 2 dias",
-    verified: true
-  },
-  {
-    id: 2,
-    user: "Carlos Silva",
-    rating: 5,
-    comment: "Profissional excelente! Pontual, organizada e de confiança. Super recomendo!",
-    date: "Há 1 semana",
-    verified: true
-  },
-  {
-    id: 3,
-    user: "Fernanda Costa",
-    rating: 4,
-    comment: "Muito boa profissional. Deixou tudo organizado e limpo. Voltarei a contratar.",
-    date: "Há 2 semanas",
-    verified: true
-  }
-];
-
-const portfolioImages = [
-  "/placeholder.svg",
-  "/placeholder.svg",
-  "/placeholder.svg",
-  "/placeholder.svg",
-  "/placeholder.svg",
-  "/placeholder.svg"
-];
+// Dados reais do usuário serão carregados do Supabase
 
 const Profile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("sobre");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchProfile();
@@ -108,17 +45,26 @@ const Profile = () => {
         return;
       }
 
+      setUser(user);
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
-      setProfile(data);
+      setProfile(data || {
+        user_id: user.id,
+        full_name: user.email,
+        bio: null,
+        location: null,
+        phone: null,
+        avatar_url: null
+      });
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     } finally {
@@ -160,14 +106,24 @@ const Profile = () => {
                   </Button>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  className="w-full md:w-auto"
-                  onClick={() => navigate('/perfil/editar')}
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Editar Perfil
-                </Button>
+                <div className="space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full md:w-auto"
+                    onClick={() => navigate('/perfil/editar')}
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar Perfil
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full md:w-auto"
+                    onClick={() => navigate('/configuracoes')}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Configurações
+                  </Button>
+                </div>
               </div>
 
               {/* Profile Info */}
@@ -176,62 +132,38 @@ const Profile = () => {
                   <div>
                     <div className="flex items-center space-x-2 mb-2">
                       <h1 className="text-3xl font-bold">{profile?.full_name || 'Usuário'}</h1>
-                      {userProfile.verified && (
-                        <Badge className="bg-blue-500">
-                          <Shield className="h-3 w-3 mr-1" />
-                          Verificado
-                        </Badge>
-                      )}
-                      {userProfile.premium && (
-                        <Badge className="bg-gradient-primary">
-                          <Award className="h-3 w-3 mr-1" />
-                          Premium
-                        </Badge>
-                      )}
                     </div>
                     
                     <p className="text-xl text-muted-foreground mb-3">Profissional ConfiLar</p>
                     
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                       <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold">{userProfile.rating}</span>
-                        <span>({userProfile.reviews} avaliações)</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
                         <MapPin className="h-4 w-4" />
                         <span>{profile?.location || 'Localização não informada'}</span>
                       </div>
                       <div className="flex items-center space-x-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>Membro desde {userProfile.memberSince}</span>
+                        <Mail className="h-4 w-4" />
+                        <span>{user?.email || 'Email não informado'}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary mb-1">
-                      {userProfile.hourlyRate}
-                    </div>
-                    <div className="text-sm text-green-600">
-                      Disponível hoje
+                    <div className="text-sm text-muted-foreground">
+                      Complete seu perfil para começar
                     </div>
                   </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{userProfile.stats.totalJobs}</div>
-                    <div className="text-sm text-muted-foreground">Trabalhos</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{userProfile.stats.repeatClients}</div>
-                    <div className="text-sm text-muted-foreground">Clientes Fixos</div>
-                  </div>
-                  <div className="text-center p-3 bg-muted/50 rounded-lg">
-                    <div className="text-2xl font-bold text-primary">{userProfile.stats.responseTime}</div>
-                    <div className="text-sm text-muted-foreground">Tempo Resposta</div>
+                {/* Profile completion prompt */}
+                <div className="grid grid-cols-1 gap-4 mb-4">
+                  <div className="text-center p-4 bg-muted/50 rounded-lg">
+                    <div className="text-lg font-semibold text-muted-foreground mb-2">
+                      Complete seu perfil
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Adicione mais informações para atrair clientes
+                    </div>
                   </div>
                 </div>
 
@@ -277,12 +209,8 @@ const Profile = () => {
                   
                   <div className="mb-4">
                     <h4 className="font-semibold mb-2">Serviços Oferecidos</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {userProfile.services.map((service) => (
-                        <Badge key={service} variant="outline">
-                          {service}
-                        </Badge>
-                      ))}
+                    <div className="text-sm text-muted-foreground">
+                      Configure seus serviços nas configurações do perfil
                     </div>
                   </div>
                 </CardContent>
@@ -294,30 +222,12 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Dias da Semana</h4>
-                    <div className="grid grid-cols-3 gap-2">
-                      {["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"].map((day) => (
-                        <div
-                          key={day}
-                          className={`p-2 text-center text-sm rounded-lg ${
-                            userProfile.availability.includes(day)
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {day}
-                        </div>
-                      ))}
+                    <h4 className="font-semibold mb-2">Disponibilidade</h4>
+                    <div className="text-sm text-muted-foreground">
+                      Configure sua disponibilidade nas configurações do perfil
                     </div>
                   </div>
                   
-                  <div>
-                    <h4 className="font-semibold mb-2">Horários</h4>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Clock className="h-4 w-4" />
-                      <span>8:00 - 18:00</span>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -330,17 +240,13 @@ const Profile = () => {
                 <p className="text-muted-foreground">Veja alguns dos meus trabalhos realizados</p>
               </CardHeader>
               <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  {portfolioImages.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image}
-                        alt={`Trabalho ${index + 1}`}
-                        className="w-full h-48 object-cover rounded-lg group-hover:opacity-75 transition-opacity cursor-pointer"
-                      />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 rounded-lg transition-colors"></div>
-                    </div>
-                  ))}
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    Você ainda não adicionou nenhum trabalho ao seu portfólio.
+                  </div>
+                  <Button variant="outline" className="mt-4">
+                    Adicionar Trabalhos
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -352,53 +258,15 @@ const Profile = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold">Avaliações</h3>
-                    <p className="text-muted-foreground">{userProfile.reviews} avaliações de clientes</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-primary">{userProfile.rating}</div>
-                    <div className="flex items-center">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star 
-                          key={star} 
-                          className="h-4 w-4 fill-yellow-400 text-yellow-400" 
-                        />
-                      ))}
-                    </div>
+                    <p className="text-muted-foreground">Nenhuma avaliação ainda</p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="border-b pb-4 last:border-b-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="font-semibold">{review.user}</h4>
-                          {review.verified && (
-                            <Badge variant="outline" className="text-xs">
-                              ✓ Verificado
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className="flex">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star 
-                                key={star} 
-                                className={`h-3 w-3 ${
-                                  star <= review.rating 
-                                    ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'text-gray-300'
-                                }`} 
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm text-muted-foreground">{review.date}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm leading-relaxed">{review.comment}</p>
-                    </div>
-                  ))}
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground">
+                    Você ainda não possui avaliações de clientes.
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -427,7 +295,7 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="font-semibold">E-mail</p>
-                      <p className="text-muted-foreground">{userProfile.email}</p>
+                      <p className="text-muted-foreground">{user?.email || 'Não informado'}</p>
                     </div>
                   </div>
                   
@@ -437,7 +305,7 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="font-semibold">Localização</p>
-                      <p className="text-muted-foreground">{userProfile.location}</p>
+                      <p className="text-muted-foreground">{profile?.location || 'Não informado'}</p>
                     </div>
                   </div>
                 </div>

@@ -184,7 +184,7 @@ const EditProfile = () => {
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={profile.avatar_url} />
                   <AvatarFallback className="bg-gradient-primary text-white text-2xl">
-                    {profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                    {profile.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                   </AvatarFallback>
                 </Avatar>
                 

@@ -14,7 +14,7 @@ import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
 import Admin from "./pages/Admin";
 import Notifications from "./pages/Notifications";
-import Settings from "./pages/Settings";
+import UserSettings from "./pages/UserSettings";
 import Onboarding from "./pages/Onboarding";
 import NotFound from "./pages/NotFound";
 
@@ -71,7 +71,7 @@ const App = () => (
             } />
             <Route path="/configuracoes" element={
               <ProtectedRoute>
-                <Settings />
+                <UserSettings />
               </ProtectedRoute>
             } />
             <Route path="/onboarding" element={<Onboarding />} />
