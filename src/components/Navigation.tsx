@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +13,8 @@ import {
   Heart,
   Settings,
   LogOut,
-  Plus
+  Plus,
+  Shield
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import confiarLogo from "@/assets/confilar-logo.png";
@@ -20,6 +22,7 @@ import confiarLogo from "@/assets/confilar-logo.png";
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { isAdmin } = useUserRole();
 
   const navItems = [
     { icon: Home, label: "Início", path: "/feed", badge: null },
@@ -75,6 +78,14 @@ const Navigation = () => {
               <Plus className="h-4 w-4 mr-2" />
               Publicar
             </Button>
+            {isAdmin() && (
+              <Link to="/admin">
+                <Button variant="outline" size="sm">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Admin
+                </Button>
+              </Link>
+            )}
             <Link to="/configuracoes">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
@@ -150,6 +161,17 @@ const Navigation = () => {
                     </nav>
 
                     <div className="border-t pt-4 space-y-2">
+                      {isAdmin() && (
+                        <Link 
+                          to="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted"
+                        >
+                          <Shield className="h-5 w-5" />
+                          <span>Administração</span>
+                        </Link>
+                      )}
+                      
                       <Link 
                         to="/configuracoes"
                         onClick={() => setIsMobileMenuOpen(false)}

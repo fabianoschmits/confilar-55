@@ -20,6 +20,9 @@ interface Post {
   location: string | null;
   created_at: string;
   user_id: string;
+  profiles?: {
+    full_name?: string;
+  } | null;
   likes: any[];
   comments: any[];
 }
@@ -44,13 +47,14 @@ const Feed = () => {
         .from('posts')
         .select(`
           *,
+          profiles(full_name),
           likes(id),
           comments(id)
         `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      setPosts((data as any) || []);
     } catch (error) {
       console.error('Erro ao carregar posts:', error);
       toast({
@@ -135,8 +139,7 @@ const Feed = () => {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
         <Navigation />
         
         <div className="container mx-auto px-4 py-6 max-w-2xl">
@@ -222,12 +225,12 @@ const Feed = () => {
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                             <span className="text-primary-foreground text-sm font-medium">
-                              {post.is_anonymous ? '?' : 'U'}
+                              {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-sm">
-                              {post.is_anonymous ? 'Confissão Anônima' : 'Usuário'}
+                              {post.is_anonymous ? 'Confissão Anônima' : post.profiles?.full_name || 'Usuário'}
                             </p>
                             <div className="flex items-center text-xs text-muted-foreground">
                               <Clock className="h-3 w-3 mr-1" />
@@ -289,8 +292,7 @@ const Feed = () => {
         {/* Espaçamento para navegação mobile */}
         <div className="h-20 lg:hidden"></div>
       </div>
-    </ProtectedRoute>
-  );
+    );
 };
 
 export default Feed;
