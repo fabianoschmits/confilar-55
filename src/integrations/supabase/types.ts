@@ -400,6 +400,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      upsert_profile: {
+        Args: {
+          _user_id: string
+          _full_name?: string
+          _avatar_url?: string
+          _bio?: string
+          _location?: string
+          _phone?: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       user_role: "user" | "admin" | "moderator"

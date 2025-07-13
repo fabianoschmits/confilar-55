@@ -195,18 +195,19 @@ const Feed = () => {
                 <h2 className="text-lg font-semibold">Compartilha Serviço</h2>
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="soft"
                     size="sm"
                     onClick={() => navigate('/postar-trabalho')}
-                    className="bg-accent/10 border-accent text-accent hover:bg-accent hover:text-white"
+                    className="hover:scale-105 transition-all duration-200"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Trabalho
                   </Button>
                   <Button
-                    variant={showCreatePost ? "outline" : "default"}
+                    variant={showCreatePost ? "outline" : "premium"}
                     size="sm"
                     onClick={() => setShowCreatePost(!showCreatePost)}
+                    className="hover:scale-105 transition-all duration-200"
                   >
                     <Edit3 className="h-4 w-4 mr-2" />
                     {showCreatePost ? 'Cancelar' : 'Novo Serviço'}
@@ -234,6 +235,8 @@ const Feed = () => {
                   <Button 
                     onClick={createPost} 
                     disabled={!newPost.trim() || submitting}
+                    variant="premium"
+                    className="hover:scale-105 transition-all duration-200"
                   >
                     {submitting ? 'Publicando...' : 'Publicar'}
                   </Button>
@@ -265,7 +268,11 @@ const Feed = () => {
                 <p className="text-muted-foreground mb-4">
                   Seja o primeiro a compartilhar um serviço!
                 </p>
-                <Button onClick={() => setShowCreatePost(true)}>
+                <Button 
+                  onClick={() => setShowCreatePost(true)}
+                  variant="premium"
+                  className="hover:scale-105 transition-all duration-200"
+                >
                   Criar primeiro serviço
                 </Button>
               </CardContent>
@@ -324,10 +331,10 @@ const Feed = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleLike(post.id)}
-                          className={`${
+                          className={`transition-all duration-200 hover:scale-105 ${
                             likedPosts.has(post.id) 
-                              ? 'text-red-500 hover:text-red-600' 
-                              : 'text-muted-foreground hover:text-primary'
+                              ? 'text-coral hover:text-coral/80' 
+                              : 'text-muted-foreground hover:text-coral'
                           }`}
                         >
                           <Heart 
@@ -345,7 +352,7 @@ const Feed = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-muted-foreground hover:text-primary"
+                          className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-105"
                           onClick={() => {
                             navigator.share?.({
                               title: 'Serviço',
