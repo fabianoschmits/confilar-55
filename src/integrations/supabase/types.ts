@@ -231,6 +231,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_comments: {
+        Row: {
+          commenter_user_id: string
+          content: string
+          created_at: string
+          id: string
+          profile_user_id: string
+          rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          commenter_user_id: string
+          content: string
+          created_at?: string
+          id?: string
+          profile_user_id: string
+          rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          commenter_user_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          profile_user_id?: string
+          rating?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -264,6 +294,27 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_likes: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          to_user_id?: string
         }
         Relationships: []
       }

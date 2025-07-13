@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,15 +23,21 @@ import {
   Settings
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import UserLikeButton from "@/components/UserLikeButton";
+import ProfileCommentsSection from "@/components/ProfileCommentsSection";
 
 // Dados reais do usuário serão carregados do Supabase
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
   const [activeTab, setActiveTab] = useState("sobre");
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [profileOwner, setProfileOwner] = useState<any>(null);
+  
+  const isOwnProfile = !userId || userId === currentUser?.id;
 
   useEffect(() => {
     fetchProfile();
@@ -45,21 +51,35 @@ const Profile = () => {
         return;
       }
 
-      setUser(user);
+      setCurrentUser(user);
 
-      const { data, error } = await supabase
+      // Determina qual perfil carregar
+      const targetUserId = userId || user.id;
+
+      // Busca o perfil do usuário alvo
+      const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .maybeSingle();
 
-      if (error) {
-        throw error;
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
       }
 
-      setProfile(data || {
-        user_id: user.id,
-        full_name: user.email,
+      // Se for perfil de outro usuário, busca dados do auth também
+      let profileOwnerData = null;
+      if (!isOwnProfile) {
+        const { data: { user: ownerUser }, error: ownerError } = await supabase.auth.admin.getUserById(targetUserId);
+        if (!ownerError) {
+          profileOwnerData = ownerUser;
+        }
+      }
+
+      setProfileOwner(profileOwnerData || user);
+      setProfile(profileData || {
+        user_id: targetUserId,
+        full_name: profileOwnerData?.email || user.email,
         bio: null,
         location: null,
         phone: null,
@@ -67,6 +87,9 @@ const Profile = () => {
       });
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
+      if (!isOwnProfile) {
+        navigate('/perfil');
+      }
     } finally {
       setLoading(false);
     }
@@ -107,22 +130,31 @@ const Profile = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Button 
-                    variant="outline" 
-                    className="w-full md:w-auto"
-                    onClick={() => navigate('/perfil/editar')}
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Editar Perfil
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full md:w-auto"
-                    onClick={() => navigate('/configuracoes')}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Configurações
-                  </Button>
+                  {isOwnProfile ? (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="w-full md:w-auto"
+                        onClick={() => navigate('/perfil/editar')}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar Perfil
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="w-full md:w-auto"
+                        onClick={() => navigate('/configuracoes')}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Configurações
+                      </Button>
+                    </>
+                  ) : (
+                    <UserLikeButton 
+                      targetUserId={profile?.user_id} 
+                      isOwnProfile={false}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -143,47 +175,48 @@ const Profile = () => {
                       </div>
                       <div className="flex items-center space-x-1">
                         <Mail className="h-4 w-4" />
-                        <span>{user?.email || 'Email não informado'}</span>
+                        <span>{profileOwner?.email || 'Email não informado'}</span>
                       </div>
                     </div>
                   </div>
                   
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">
-                      Complete seu perfil para começar
+                      {isOwnProfile ? "Complete seu perfil para começar" : "Profissional ConfiLar"}
                     </div>
                   </div>
                 </div>
 
-                {/* Profile completion prompt */}
-                <div className="grid grid-cols-1 gap-4 mb-4">
-                  <div className="text-center p-4 bg-muted/50 rounded-lg">
-                    <div className="text-lg font-semibold text-muted-foreground mb-2">
-                      Complete seu perfil
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Adicione mais informações para atrair clientes
+                {/* Profile completion prompt - only for own profile */}
+                {isOwnProfile && (
+                  <div className="grid grid-cols-1 gap-4 mb-4">
+                    <div className="text-center p-4 bg-muted/50 rounded-lg">
+                      <div className="text-lg font-semibold text-muted-foreground mb-2">
+                        Complete seu perfil
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Adicione mais informações para atrair clientes
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Contact Buttons */}
-                <div className="flex flex-wrap gap-2">
-                  <Button className="btn-hero flex-1 md:flex-none">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Conversar
-                  </Button>
-                  <Button variant="outline" className="flex-1 md:flex-none">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Ligar
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Heart className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {!isOwnProfile && (
+                  <div className="flex flex-wrap gap-2">
+                    <Button className="btn-hero flex-1 md:flex-none">
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Conversar
+                    </Button>
+                    <Button variant="outline" className="flex-1 md:flex-none">
+                      <Phone className="h-4 w-4 mr-2" />
+                      Ligar
+                    </Button>
+                    <Button variant="outline" size="icon">
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardContent>
@@ -253,23 +286,10 @@ const Profile = () => {
           </TabsContent>
 
           <TabsContent value="avaliacoes" className="mt-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold">Avaliações</h3>
-                    <p className="text-muted-foreground">Nenhuma avaliação ainda</p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-muted-foreground">
-                    Você ainda não possui avaliações de clientes.
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfileCommentsSection 
+              profileUserId={profile?.user_id} 
+              isOwnProfile={isOwnProfile}
+            />
           </TabsContent>
 
           <TabsContent value="contato" className="mt-6">
@@ -295,7 +315,7 @@ const Profile = () => {
                     </div>
                     <div>
                       <p className="font-semibold">E-mail</p>
-                      <p className="text-muted-foreground">{user?.email || 'Não informado'}</p>
+                      <p className="text-muted-foreground">{profileOwner?.email || 'Não informado'}</p>
                     </div>
                   </div>
                   

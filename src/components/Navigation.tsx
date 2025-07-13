@@ -25,11 +25,11 @@ const Navigation = () => {
   const { isAdmin } = useUserRole();
 
   const navItems = [
-    { icon: Home, label: "Início", path: "/feed", badge: null },
-    { icon: Search, label: "Buscar", path: "/buscar", badge: null },
-    { icon: MessageCircle, label: "Chat", path: "/chat", badge: 3 },
-    { icon: Bell, label: "Notificações", path: "/notificacoes", badge: 5 },
-    { icon: User, label: "Perfil", path: "/perfil", badge: null },
+    { icon: Home, label: "Início", path: "/feed", badge: null, description: "Atividades de todos os usuários" },
+    { icon: Search, label: "Buscar", path: "/buscar", badge: null, description: "Buscar posts e usuários" },
+    { icon: MessageCircle, label: "Chat", path: "/chat", badge: 3, description: "Conversas" },
+    { icon: Bell, label: "Notificações", path: "/notificacoes", badge: 5, description: "Notificações" },
+    { icon: User, label: "Perfil", path: "/perfil", badge: null, description: "Meu perfil" },
   ];
 
   const isActive = (path: string) => location.pathname === path;

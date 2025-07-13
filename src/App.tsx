@@ -54,6 +54,11 @@ const App = () => (
                 <Profile />
               </ProtectedRoute>
             } />
+            <Route path="/perfil/:userId" element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } />
             <Route path="/perfil/editar" element={
               <ProtectedRoute>
                 <EditProfile />

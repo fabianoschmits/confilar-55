@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CommentSection from '@/components/CommentSection';
+import { Link } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -273,7 +274,16 @@ const Feed = () => {
                           </div>
                           <div>
                             <p className="font-medium text-sm">
-                              {post.is_anonymous ? 'Confissão Anônima' : post.profiles?.full_name || 'Usuário'}
+                              {post.is_anonymous ? (
+                                'Confissão Anônima'
+                              ) : (
+                                <Link 
+                                  to={`/perfil/${post.user_id}`}
+                                  className="hover:text-primary transition-colors"
+                                >
+                                  {post.profiles?.full_name || 'Usuário'}
+                                </Link>
+                              )}
                             </p>
                             <div className="flex items-center text-xs text-muted-foreground">
                               <Clock className="h-3 w-3 mr-1" />

@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Search as SearchIcon, User, MapPin, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 
 interface SearchResult {
   id: string;
@@ -221,7 +222,16 @@ const Search = () => {
                             </div>
                             <div>
                               <p className="font-medium text-sm">
-                                {post.is_anonymous ? 'Confissão Anônima' : post.profiles?.full_name || 'Usuário'}
+                                {post.is_anonymous ? (
+                                  'Confissão Anônima'
+                                ) : (
+                                  <Link 
+                                    to={`/perfil/${post.user_id}`}
+                                    className="hover:text-primary transition-colors"
+                                  >
+                                    {post.profiles?.full_name || 'Usuário'}
+                                  </Link>
+                                )}
                               </p>
                               <div className="flex items-center text-xs text-muted-foreground">
                                 <Clock className="h-3 w-3 mr-1" />
@@ -259,20 +269,29 @@ const Search = () => {
                           <User className="h-6 w-6 text-primary-foreground" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-medium">{user.full_name || 'Usuário'}</h3>
-                          {user.bio && (
-                            <p className="text-sm text-muted-foreground mt-1">{user.bio}</p>
-                          )}
-                          {user.location && (
-                            <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {user.location}
-                            </div>
-                          )}
+                          <Link 
+                            to={`/perfil/${user.user_id}`}
+                            className="block hover:bg-muted/50 transition-colors rounded p-2"
+                          >
+                            <h3 className="font-medium hover:text-primary transition-colors">
+                              {user.full_name || 'Usuário'}
+                            </h3>
+                            {user.bio && (
+                              <p className="text-sm text-muted-foreground mt-1">{user.bio}</p>
+                            )}
+                            {user.location && (
+                              <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                {user.location}
+                              </div>
+                            )}
+                          </Link>
                         </div>
-                        <Button variant="outline" size="sm">
-                          Ver Perfil
-                        </Button>
+                        <Link to={`/perfil/${user.user_id}`}>
+                          <Button variant="outline" size="sm">
+                            Ver Perfil
+                          </Button>
+                        </Link>
                       </div>
                     </CardContent>
                   </Card>
