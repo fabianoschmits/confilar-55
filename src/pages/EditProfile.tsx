@@ -123,17 +123,15 @@ const EditProfile = () => {
         throw new Error('Usuário não autenticado');
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: profile.full_name,
-          bio: profile.bio,
-          location: profile.location,
-          phone: profile.phone,
-          avatar_url: profile.avatar_url,
-          updated_at: new Date().toISOString()
-        });
+      // Use the upsert function to avoid duplicate key errors
+      const { error } = await supabase.rpc('upsert_profile', {
+        _user_id: user.id,
+        _full_name: profile.full_name,
+        _bio: profile.bio,
+        _location: profile.location,
+        _phone: profile.phone,
+        _avatar_url: profile.avatar_url
+      });
 
       if (error) throw error;
 

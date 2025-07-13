@@ -51,7 +51,7 @@ const Feed = () => {
         .from('posts')
         .select(`
           *,
-          profiles(full_name),
+          profiles!inner(full_name),
           likes(id),
           comments(id)
         `)
