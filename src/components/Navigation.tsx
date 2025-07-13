@@ -29,8 +29,8 @@ const Navigation = () => {
     { icon: Home, label: "Início", path: "/feed", badge: null, description: "Atividades de todos os usuários" },
     { icon: TrendingUp, label: "Explorar", path: "/explorar", badge: null, description: "Descubra conteúdo em alta" },
     { icon: Search, label: "Buscar", path: "/buscar", badge: null, description: "Buscar posts e usuários" },
-    { icon: MessageCircle, label: "Chat", path: "/chat", badge: 3, description: "Conversas" },
-    { icon: Bell, label: "Notificações", path: "/notificacoes", badge: 5, description: "Notificações" },
+    { icon: MessageCircle, label: "Chat", path: "/chat", badge: null, description: "Conversas" },
+    { icon: Bell, label: "Notificações", path: "/notificacoes", badge: null, description: "Notificações" },
     { icon: User, label: "Perfil", path: "/perfil", badge: null, description: "Meu perfil" },
   ];
 
@@ -111,11 +111,8 @@ const Navigation = () => {
 
             <div className="flex items-center space-x-2">
               <Link to="/notificacoes">
-                <Button variant="ghost" size="icon" className="relative">
+                <Button variant="ghost" size="icon">
                   <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs bg-destructive">
-                    5
-                  </Badge>
                 </Button>
               </Link>
               

@@ -51,18 +51,61 @@ const Feed = () => {
 
   const fetchPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles!inner(full_name),
-          likes(id),
-          comments(id)
-        `)
-        .order('created_at', { ascending: false });
+      // Buscar posts de todas as tabelas (posts e work_posts) com critério de relevância
+      const [postsData, workPostsData] = await Promise.all([
+        supabase
+          .from('posts')
+          .select(`
+            *,
+            profiles!inner(full_name),
+            likes(id),
+            comments(id)
+          `)
+          .order('created_at', { ascending: false }),
+        
+        supabase
+          .from('work_posts')
+          .select(`
+            id,
+            title,
+            description,
+            location,
+            created_at,
+            user_id,
+            profiles!inner(full_name)
+          `)
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (error) throw error;
-      setPosts((data as any) || []);
+      if (postsData.error) throw postsData.error;
+      if (workPostsData.error) throw workPostsData.error;
+
+      // Converter work_posts para formato de post
+      const convertedWorkPosts = workPostsData.data?.map(workPost => ({
+        id: workPost.id,
+        content: `${workPost.title}\n\n${workPost.description}`,
+        is_anonymous: false,
+        location: workPost.location,
+        created_at: workPost.created_at,
+        user_id: workPost.user_id,
+        profiles: workPost.profiles,
+        likes: [],
+        comments: []
+      })) || [];
+
+      // Combinar e embaralhar posts para criar feed aleatório com relevância
+      const allPosts = [...(postsData.data || []), ...convertedWorkPosts];
+      
+      // Algoritmo simples de relevância: posts mais recentes têm maior chance de aparecer primeiro
+      const shuffledPosts = allPosts
+        .map(post => ({
+          ...post,
+          relevanceScore: Math.random() + (new Date(post.created_at).getTime() / Date.now()) * 0.5
+        }))
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .map(({ relevanceScore, ...post }) => post);
+
+      setPosts(shuffledPosts as Post[]);
 
       // Verificar quais posts o usuário já curtiu
       if (user?.id) {

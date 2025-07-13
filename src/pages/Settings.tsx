@@ -241,6 +241,12 @@ const Settings = () => {
                     }
                   />
                 </div>
+
+                <div className="pt-4 border-t">
+                  <Button className="w-full">
+                    Salvar Configurações de Notificação
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -288,6 +294,12 @@ const Settings = () => {
                       setPrivacy(prev => ({ ...prev, showEmail: checked }))
                     }
                   />
+                </div>
+
+                <div className="pt-4 border-t">
+                  <Button className="w-full">
+                    Salvar Configurações de Privacidade
+                  </Button>
                 </div>
 
                 <Separator />
