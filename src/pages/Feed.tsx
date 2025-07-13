@@ -1,233 +1,299 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Heart, 
-  MessageCircle, 
-  Share2, 
-  Star, 
-  MapPin, 
-  Clock,
-  MoreHorizontal,
-  Camera,
-  Plus
-} from "lucide-react";
-import Navigation from "@/components/Navigation";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import Navigation from '@/components/Navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Heart, MessageCircle, Share2, MapPin, Clock, Edit3 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-// Mock data
-const posts = [
-  {
-    id: 1,
-    user: {
-      name: "Maria Santos",
-      role: "Diarista",
-      avatar: null,
-      rating: 4.9,
-      verified: true
-    },
-    content: "Acabei de finalizar um trabalho incrível! Casa toda organizada e brilhando ✨",
-    images: ["/placeholder.svg"],
-    likes: 24,
-    comments: 8,
-    shares: 3,
-    timeAgo: "2h",
-    location: "São Paulo, SP"
-  },
-  {
-    id: 2,
-    user: {
-      name: "João Silva",
-      role: "Cuidador de Idosos",
-      avatar: null,
-      rating: 5.0,
-      verified: true
-    },
-    content: "Hoje foi um dia especial cuidando da Dona Helena. Fizemos um bolo de chocolate juntos! 👨‍🍳❤️",
-    images: ["/placeholder.svg", "/placeholder.svg"],
-    likes: 45,
-    comments: 12,
-    shares: 6,
-    timeAgo: "4h",
-    location: "Rio de Janeiro, RJ"
-  },
-  {
-    id: 3,
-    user: {
-      name: "Ana Costa",
-      role: "Babá",
-      avatar: null,
-      rating: 4.8,
-      verified: true
-    },
-    content: "Brincadeira no parque com os pequenos! Nada melhor que ver eles felizes e aprendendo 🌟",
-    images: ["/placeholder.svg"],
-    likes: 67,
-    comments: 15,
-    shares: 9,
-    timeAgo: "6h",
-    location: "Belo Horizonte, MG"
-  }
-];
+interface Post {
+  id: string;
+  content: string;
+  is_anonymous: boolean;
+  location: string | null;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    full_name: string;
+  } | null;
+  likes: any[];
+  comments: any[];
+}
 
 const Feed = () => {
-  const [likedPosts, setLikedPosts] = useState<number[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [newPost, setNewPost] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const toggleLike = (postId: number) => {
-    setLikedPosts(prev => 
-      prev.includes(postId) 
-        ? prev.filter(id => id !== postId)
-        : [...prev, postId]
-    );
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles!inner(full_name),
+          likes(id),
+          comments(id)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar posts:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os posts.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createPost = async () => {
+    if (!newPost.trim()) return;
+    
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .insert([{
+          content: newPost,
+          is_anonymous: isAnonymous,
+          user_id: user?.id,
+        }]);
+
+      if (error) throw error;
+
+      setNewPost('');
+      setShowCreatePost(false);
+      await fetchPosts();
+      
+      toast({
+        title: "Post criado!",
+        description: "Sua confissão foi publicada.",
+      });
+    } catch (error) {
+      console.error('Erro ao criar post:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar o post.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleLike = async (postId: string) => {
+    try {
+      // Verificar se já curtiu
+      const { data: existingLike } = await supabase
+        .from('likes')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user?.id)
+        .single();
+
+      if (existingLike) {
+        // Remover like
+        const { error } = await supabase
+          .from('likes')
+          .delete()
+          .eq('id', existingLike.id);
+        
+        if (error) throw error;
+      } else {
+        // Adicionar like
+        const { error } = await supabase
+          .from('likes')
+          .insert([{
+            post_id: postId,
+            user_id: user?.id,
+          }]);
+        
+        if (error) throw error;
+      }
+
+      await fetchPosts();
+    } catch (error) {
+      console.error('Erro ao curtir post:', error);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Create Post Card */}
-        <Card className="mb-6 shadow-soft">
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-3">
-              <Avatar>
-                <AvatarFallback className="bg-gradient-primary text-white">
-                  M
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-muted-foreground"
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        
+        <div className="container mx-auto px-4 py-6 max-w-2xl">
+          {/* Criar Post */}
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Compartilhe sua confissão</h2>
+                <Button
+                  variant={showCreatePost ? "outline" : "default"}
+                  size="sm"
+                  onClick={() => setShowCreatePost(!showCreatePost)}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Compartilhe seu trabalho...
+                  <Edit3 className="h-4 w-4 mr-2" />
+                  {showCreatePost ? 'Cancelar' : 'Nova Confissão'}
                 </Button>
               </div>
-              <Button size="icon" variant="outline">
-                <Camera className="h-5 w-5" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Posts Feed */}
-        <div className="space-y-6">
-          {posts.map((post) => (
-            <Card key={post.id} className="shadow-soft hover:shadow-medium transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar>
-                      <AvatarImage src={post.user.avatar || undefined} />
-                      <AvatarFallback className="bg-gradient-primary text-white">
-                        {post.user.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <h3 className="font-semibold">{post.user.name}</h3>
-                        {post.user.verified && (
-                          <Badge variant="secondary" className="text-xs">
-                            ✓ Verificado
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                        <span>{post.user.role}</span>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span>{post.user.rating}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        <span>{post.location}</span>
-                        <span>•</span>
-                        <Clock className="h-3 w-3" />
-                        <span>{post.timeAgo}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <p className="mb-4 leading-relaxed">{post.content}</p>
-                
-                {/* Images */}
-                {post.images.length > 0 && (
-                  <div className={`grid gap-2 mb-4 ${
-                    post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'
-                  }`}>
-                    {post.images.map((image, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={image}
-                          alt={`Trabalho de ${post.user.name}`}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Engagement Stats */}
-                <div className="flex items-center justify-between text-sm text-muted-foreground mb-3 pb-3 border-b">
-                  <div className="flex items-center space-x-4">
-                    <span>{post.likes} curtidas</span>
-                    <span>{post.comments} comentários</span>
-                  </div>
-                  <span>{post.shares} compartilhamentos</span>
-                </div>
-
-                {/* Action Buttons */}
+            </CardHeader>
+            {showCreatePost && (
+              <CardContent className="space-y-4">
+                <Textarea
+                  placeholder="Conte sua confissão... Seja respeitoso e authentic."
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                  className="min-h-[120px]"
+                />
                 <div className="flex items-center justify-between">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleLike(post.id)}
-                    className={`flex items-center space-x-2 ${
-                      likedPosts.includes(post.id) 
-                        ? 'text-red-500 hover:text-red-600' 
-                        : 'hover:text-red-500'
-                    }`}
-                  >
-                    <Heart 
-                      className={`h-5 w-5 ${
-                        likedPosts.includes(post.id) ? 'fill-current' : ''
-                      }`} 
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="anonymous"
+                      checked={isAnonymous}
+                      onCheckedChange={setIsAnonymous}
                     />
-                    <span>Curtir</span>
-                  </Button>
-                  
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <MessageCircle className="h-5 w-5" />
-                    <span>Comentar</span>
-                  </Button>
-                  
-                  <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                    <Share2 className="h-5 w-5" />
-                    <span>Compartilhar</span>
+                    <Label htmlFor="anonymous">Postar anonimamente</Label>
+                  </div>
+                  <Button 
+                    onClick={createPost} 
+                    disabled={!newPost.trim() || submitting}
+                  >
+                    {submitting ? 'Publicando...' : 'Publicar'}
                   </Button>
                 </div>
               </CardContent>
+            )}
+          </Card>
+
+          {/* Posts */}
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-muted rounded w-1/4"></div>
+                      <div className="h-4 bg-muted rounded w-full"></div>
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : posts.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <Edit3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">Nenhuma confissão ainda</h3>
+                <p className="text-muted-foreground mb-4">
+                  Seja o primeiro a compartilhar uma confissão!
+                </p>
+                <Button onClick={() => setShowCreatePost(true)}>
+                  Criar primeira confissão
+                </Button>
+              </CardContent>
             </Card>
-          ))}
+          ) : (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <Card key={post.id}>
+                  <CardContent className="p-6">
+                    <div className="space-y-4">
+                      {/* Header do Post */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                            <span className="text-primary-foreground text-sm font-medium">
+                              {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">
+                              {post.is_anonymous ? 'Confissão Anônima' : post.profiles?.full_name || 'Usuário'}
+                            </p>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {formatDistanceToNow(new Date(post.created_at), { 
+                                addSuffix: true, 
+                                locale: ptBR 
+                              })}
+                              {post.location && (
+                                <>
+                                  <span className="mx-2">•</span>
+                                  <MapPin className="h-3 w-3 mr-1" />
+                                  {post.location}
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Conteúdo */}
+                      <p className="text-sm leading-relaxed">{post.content}</p>
+
+                      {/* Ações */}
+                      <div className="flex items-center space-x-6 pt-2 border-t">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleLike(post.id)}
+                          className="text-muted-foreground hover:text-primary"
+                        >
+                          <Heart className="h-4 w-4 mr-2" />
+                          {post.likes?.length || 0}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-primary"
+                        >
+                          <MessageCircle className="h-4 w-4 mr-2" />
+                          {post.comments?.length || 0}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-muted-foreground hover:text-primary"
+                        >
+                          <Share2 className="h-4 w-4 mr-2" />
+                          Compartilhar
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Load More */}
-        <div className="text-center mt-8">
-          <Button variant="outline" size="lg">
-            Carregar mais posts
-          </Button>
-        </div>
+        {/* Espaçamento para navegação mobile */}
+        <div className="h-20 lg:hidden"></div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

@@ -32,11 +32,11 @@ const Header = () => {
 
         {/* Actions */}
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" className="hidden sm:flex">
-            Entrar
+          <Button variant="ghost" className="hidden sm:flex" asChild>
+            <a href="/login">Entrar</a>
           </Button>
-          <Button className="btn-hero hidden sm:flex">
-            Cadastrar
+          <Button className="btn-hero hidden sm:flex" asChild>
+            <a href="/login">Cadastrar</a>
           </Button>
           
           {/* Mobile menu button */}
