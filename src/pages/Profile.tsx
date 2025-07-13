@@ -25,6 +25,7 @@ import {
 import Navigation from "@/components/Navigation";
 import UserLikeButton from "@/components/UserLikeButton";
 import ProfileCommentsSection from "@/components/ProfileCommentsSection";
+import { useToast } from "@/hooks/use-toast";
 
 // Dados reais do usuário serão carregados do Supabase
 
@@ -36,6 +37,7 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [profileOwner, setProfileOwner] = useState<any>(null);
+  const { toast } = useToast();
   
   const isOwnProfile = !userId || userId === currentUser?.id;
 
@@ -92,6 +94,85 @@ const Profile = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartConversation = async () => {
+    if (!currentUser || !profile?.user_id) return;
+
+    try {
+      // Verificar se já existe uma conversa entre os usuários
+      const { data: existingConversation, error: searchError } = await supabase
+        .from('conversations')
+        .select('id')
+        .or(`and(participant1_id.eq.${currentUser.id},participant2_id.eq.${profile.user_id}),and(participant1_id.eq.${profile.user_id},participant2_id.eq.${currentUser.id})`)
+        .maybeSingle();
+
+      if (searchError && searchError.code !== 'PGRST116') {
+        throw searchError;
+      }
+
+      let conversationId = existingConversation?.id;
+
+      // Se não existe conversa, criar uma nova
+      if (!conversationId) {
+        const { data: newConversation, error: createError } = await supabase
+          .from('conversations')
+          .insert([{
+            participant1_id: currentUser.id,
+            participant2_id: profile.user_id,
+          }])
+          .select('id')
+          .single();
+
+        if (createError) throw createError;
+        conversationId = newConversation.id;
+      }
+
+      // Navegar para o chat
+      navigate('/chat');
+    } catch (error) {
+      console.error('Erro ao iniciar conversa:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível iniciar a conversa.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShareProfile = async () => {
+    const profileUrl = `${window.location.origin}/perfil/${profile?.user_id}`;
+    const shareText = `Confira o perfil de ${profile?.full_name || 'Usuário'} no ConfiLar`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareText,
+          url: profileUrl,
+        });
+      } catch (error) {
+        // Se o usuário cancelar o compartilhamento, não mostrar erro
+        if (error instanceof Error && error.name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', error);
+        }
+      }
+    } else {
+      // Fallback: copiar para clipboard
+      try {
+        await navigator.clipboard.writeText(profileUrl);
+        toast({
+          title: "Link copiado!",
+          description: "O link do perfil foi copiado para a área de transferência.",
+        });
+      } catch (error) {
+        console.error('Erro ao copiar link:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível copiar o link.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -204,7 +285,10 @@ const Profile = () => {
                 {/* Contact Buttons */}
                 {!isOwnProfile && (
                   <div className="flex flex-wrap gap-2">
-                    <Button className="btn-hero flex-1 md:flex-none">
+                    <Button 
+                      className="btn-hero flex-1 md:flex-none"
+                      onClick={handleStartConversation}
+                    >
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Conversar
                     </Button>
@@ -212,7 +296,11 @@ const Profile = () => {
                       <Phone className="h-4 w-4 mr-2" />
                       Ligar
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      onClick={handleShareProfile}
+                    >
                       <Share2 className="h-4 w-4" />
                     </Button>
                   </div>
