@@ -85,16 +85,12 @@ const Admin = () => {
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_roles(role)
-        `)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { action: 'get_users' }
+      });
 
       if (error) throw error;
-      setUsers(data || []);
+      setUsers(data?.data || []);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
     }
@@ -123,12 +119,17 @@ const Admin = () => {
   const promoteUser = async (userId: string, role: 'admin' | 'moderator') => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('user_roles')
-        .upsert({
-          user_id: userId,
-          role: role
-        });
+      
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          action: 'assign_role', 
+          payload: { 
+            userId, 
+            role,
+            reason: `Promoted to ${role} via admin panel`
+          } 
+        }
+      });
 
       if (error) throw error;
 
@@ -153,10 +154,16 @@ const Admin = () => {
   const removeRole = async (userId: string) => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
+      
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          action: 'remove_role', 
+          payload: { 
+            userId,
+            reason: 'Role removed via admin panel'
+          } 
+        }
+      });
 
       if (error) throw error;
 
@@ -178,13 +185,20 @@ const Admin = () => {
     }
   };
 
-  const deletePost = async (postId: string) => {
+  const deletePost = async (postId: string, postType: 'normal' | 'work' = 'normal') => {
     try {
       setLoading(true);
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', postId);
+      
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { 
+          action: 'delete_post', 
+          payload: { 
+            postId,
+            postType,
+            reason: 'Deleted via admin panel'
+          } 
+        }
+      });
 
       if (error) throw error;
 

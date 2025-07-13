@@ -1,6 +1,8 @@
 import { Upload, X, Image as ImageIcon, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { validateFile } from '@/lib/sanitize';
+import { useToast } from '@/hooks/use-toast';
 
 interface MediaUploadProps {
   mediaFiles: File[];
@@ -9,6 +11,26 @@ interface MediaUploadProps {
 }
 
 const MediaUpload = ({ mediaFiles, onFileChange, onRemoveFile }: MediaUploadProps) => {
+  const { toast } = useToast();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validate each file
+    for (const file of files) {
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast({
+          title: "Arquivo inválido",
+          description: validation.error,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
+    onFileChange(e);
+  };
   return (
     <div>
       <Label>Fotos e Vídeos</Label>
@@ -22,7 +44,7 @@ const MediaUpload = ({ mediaFiles, onFileChange, onRemoveFile }: MediaUploadProp
             type="file"
             multiple
             accept="image/*,video/*"
-            onChange={onFileChange}
+            onChange={handleFileChange}
             className="hidden"
             id="media-upload"
           />

@@ -3,6 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { sanitizeText } from '@/lib/sanitize';
 
 interface WorkFormProps {
   title: string;
@@ -45,7 +46,7 @@ const WorkForm = ({
           id="title"
           placeholder="Ex: Limpeza residencial completa"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => setTitle(sanitizeText(e.target.value))}
         />
       </div>
 
@@ -55,7 +56,7 @@ const WorkForm = ({
           id="description"
           placeholder="Descreva o trabalho realizado..."
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => setDescription(sanitizeText(e.target.value))}
           className="min-h-[120px]"
         />
       </div>
@@ -67,7 +68,7 @@ const WorkForm = ({
             id="category"
             placeholder="Ex: Limpeza"
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => setCategory(sanitizeText(e.target.value))}
           />
         </div>
         <div>
@@ -88,7 +89,7 @@ const WorkForm = ({
           id="location"
           placeholder="Cidade, Estado"
           value={location}
-          onChange={(e) => setLocation(e.target.value)}
+          onChange={(e) => setLocation(sanitizeText(e.target.value))}
         />
       </div>
 

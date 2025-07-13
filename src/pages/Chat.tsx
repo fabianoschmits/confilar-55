@@ -11,6 +11,7 @@ import { MessageCircle, Send, User, Plus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeText, rateLimiter } from '@/lib/sanitize';
 
 interface Conversation {
   id: string;
@@ -155,12 +156,33 @@ const Chat = () => {
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
 
+    // Rate limiting check
+    if (!rateLimiter.isAllowed(`message_${user?.id}`, 10, 60000)) {
+      toast({
+        title: "Limite excedido",
+        description: "Você está enviando mensagens muito rapidamente. Tente novamente em alguns segundos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Sanitize message content
+    const sanitizedMessage = sanitizeText(newMessage);
+    if (!sanitizedMessage.trim()) {
+      toast({
+        title: "Mensagem inválida",
+        description: "A mensagem contém conteúdo não permitido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSendingMessage(true);
     try {
       const { error } = await supabase
         .from('messages')
         .insert([{
-          content: newMessage,
+          content: sanitizedMessage,
           sender_id: user?.id,
           conversation_id: selectedConversation,
         }]);
@@ -323,7 +345,7 @@ const Chat = () => {
                       <Input
                         placeholder="Digite sua mensagem..."
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e) => setNewMessage(sanitizeText(e.target.value))}
                         onKeyPress={handleKeyPress}
                         className="flex-1"
                       />

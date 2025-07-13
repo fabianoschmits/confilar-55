@@ -444,6 +444,36 @@ export type Database = {
         }
         Relationships: []
       }
+      role_change_logs: {
+        Row: {
+          changed_by: string
+          created_at: string
+          id: string
+          new_role: Database["public"]["Enums"]["user_role"]
+          old_role: Database["public"]["Enums"]["user_role"] | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          id?: string
+          new_role: Database["public"]["Enums"]["user_role"]
+          old_role?: Database["public"]["Enums"]["user_role"] | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          id?: string
+          new_role?: Database["public"]["Enums"]["user_role"]
+          old_role?: Database["public"]["Enums"]["user_role"] | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_likes: {
         Row: {
           created_at: string
@@ -536,6 +566,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          target_user_id: string
+          new_role: Database["public"]["Enums"]["user_role"]
+          reason?: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -545,6 +583,10 @@ export type Database = {
       }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      remove_user_role: {
+        Args: { target_user_id: string; reason?: string }
         Returns: boolean
       }
       upsert_profile: {
