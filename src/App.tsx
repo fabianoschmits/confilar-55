@@ -16,6 +16,7 @@ import Admin from "./pages/Admin";
 import Notifications from "./pages/Notifications";
 import UserSettings from "./pages/UserSettings";
 import Onboarding from "./pages/Onboarding";
+import CreateWork from "./pages/CreateWork";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,16 @@ const App = () => (
             <Route path="/buscar" element={
               <ProtectedRoute>
                 <Search />
+              </ProtectedRoute>
+            } />
+            <Route path="/chat/:userId" element={
+              <ProtectedRoute>
+                <Chat />
+              </ProtectedRoute>
+            } />
+            <Route path="/postar-trabalho" element={
+              <ProtectedRoute>
+                <CreateWork />
               </ProtectedRoute>
             } />
             <Route path="/chat" element={
