@@ -198,6 +198,7 @@ const Feed = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate('/postar-trabalho')}
+                    className="bg-accent/10 border-accent text-accent hover:bg-accent hover:text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Trabalho

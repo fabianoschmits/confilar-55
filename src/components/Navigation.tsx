@@ -37,7 +37,7 @@ const Navigation = () => {
   return (
     <>
       {/* Desktop Header */}
-      <header className="hidden md:flex sticky top-0 z-50 w-full bg-white/95 backdrop-blur-sm border-b border-border shadow-soft">
+      <header className="hidden md:flex sticky top-0 z-50 w-full bg-white/98 backdrop-blur-md border-b border-border/30 shadow-soft">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/feed" className="flex items-center space-x-3">

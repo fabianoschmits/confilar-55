@@ -24,7 +24,7 @@ const HeroSection = () => {
             
             <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Conecte-se com
-              <span className="block bg-gradient-peach bg-clip-text text-transparent">
+              <span className="block bg-gradient-warm bg-clip-text text-transparent">
                 profissionais de confiança
               </span>
             </h1>
