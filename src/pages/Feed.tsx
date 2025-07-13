@@ -12,6 +12,7 @@ import { Heart, MessageCircle, Share2, MapPin, Clock, Edit3 } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import CommentSection from '@/components/CommentSection';
 
 interface Post {
   id: string;
@@ -34,6 +35,7 @@ const Feed = () => {
   const [newPost, setNewPost] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -55,6 +57,17 @@ const Feed = () => {
 
       if (error) throw error;
       setPosts((data as any) || []);
+
+      // Verificar quais posts o usuário já curtiu
+      if (user?.id) {
+        const { data: likesData } = await supabase
+          .from('likes')
+          .select('post_id')
+          .eq('user_id', user.id);
+        
+        const liked = new Set(likesData?.map(like => like.post_id) || []);
+        setLikedPosts(liked);
+      }
     } catch (error) {
       console.error('Erro ao carregar posts:', error);
       toast({
@@ -104,22 +117,23 @@ const Feed = () => {
 
   const toggleLike = async (postId: string) => {
     try {
-      // Verificar se já curtiu
-      const { data: existingLike } = await supabase
-        .from('likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user?.id)
-        .single();
+      const isLiked = likedPosts.has(postId);
 
-      if (existingLike) {
+      if (isLiked) {
         // Remover like
         const { error } = await supabase
           .from('likes')
           .delete()
-          .eq('id', existingLike.id);
+          .eq('post_id', postId)
+          .eq('user_id', user?.id);
         
         if (error) throw error;
+        
+        setLikedPosts(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
       } else {
         // Adicionar like
         const { error } = await supabase
@@ -130,12 +144,41 @@ const Feed = () => {
           }]);
         
         if (error) throw error;
+        
+        setLikedPosts(prev => new Set(prev).add(postId));
       }
 
-      await fetchPosts();
+      // Atualizar contagem de likes
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                likes: isLiked 
+                  ? post.likes.slice(0, -1) 
+                  : [...post.likes, { id: 'temp' }]
+              }
+            : post
+        )
+      );
     } catch (error) {
       console.error('Erro ao curtir post:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível curtir o post.",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleCommentsChange = (postId: string, newCount: number) => {
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, comments: Array(newCount).fill({ id: 'temp' }) }
+          : post
+      )
+    );
   };
 
   return (
@@ -259,23 +302,41 @@ const Feed = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleLike(post.id)}
-                          className="text-muted-foreground hover:text-primary"
+                          className={`${
+                            likedPosts.has(post.id) 
+                              ? 'text-red-500 hover:text-red-600' 
+                              : 'text-muted-foreground hover:text-primary'
+                          }`}
                         >
-                          <Heart className="h-4 w-4 mr-2" />
+                          <Heart 
+                            className={`h-4 w-4 mr-2 ${
+                              likedPosts.has(post.id) ? 'fill-current' : ''
+                            }`} 
+                          />
                           {post.likes?.length || 0}
                         </Button>
+                        <CommentSection 
+                          postId={post.id}
+                          commentsCount={post.comments?.length || 0}
+                          onCommentsChange={(count) => handleCommentsChange(post.id, count)}
+                        />
                         <Button
                           variant="ghost"
                           size="sm"
                           className="text-muted-foreground hover:text-primary"
-                        >
-                          <MessageCircle className="h-4 w-4 mr-2" />
-                          {post.comments?.length || 0}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            navigator.share?.({
+                              title: 'Confissão',
+                              text: post.content,
+                              url: window.location.href
+                            }).catch(() => {
+                              navigator.clipboard.writeText(window.location.href);
+                              toast({
+                                title: "Link copiado!",
+                                description: "O link foi copiado para a área de transferência."
+                              });
+                            });
+                          }}
                         >
                           <Share2 className="h-4 w-4 mr-2" />
                           Compartilhar
