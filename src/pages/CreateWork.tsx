@@ -82,14 +82,10 @@ const CreateWork = () => {
       }
       
       const { error } = await supabase
-        .from('work_posts')
+        .from('posts')
         .insert([{
-          title,
-          description,
-          price: price ? parseFloat(price) : null,
+          content: `${title}\n\n${description}\n\nPreço: ${price ? `R$ ${price}` : 'A combinar'}\nCategoria: ${category}`,
           location,
-          category,
-          media_urls: mediaUrls,
           is_anonymous: isAnonymous,
           user_id: user?.id,
         }]);

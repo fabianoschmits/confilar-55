@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Heart, MessageCircle, Share2, MapPin, Clock, Edit3 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, MapPin, Clock, Edit3, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
