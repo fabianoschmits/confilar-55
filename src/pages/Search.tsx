@@ -12,15 +12,18 @@ import { ptBR } from 'date-fns/locale';
 
 interface SearchResult {
   id: string;
-  content: string;
-  is_anonymous: boolean;
-  location: string | null;
-  created_at: string;
+  content?: string;
+  is_anonymous?: boolean;
+  location?: string | null;
+  created_at?: string;
   profiles?: {
     full_name?: string;
   } | null;
-  likes: any[];
-  comments: any[];
+  likes?: any[];
+  comments?: any[];
+  full_name?: string;
+  bio?: string;
+  avatar_url?: string;
 }
 
 const Search = () => {

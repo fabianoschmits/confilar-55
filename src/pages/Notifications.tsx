@@ -1,299 +1,270 @@
-import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  Bell,
-  MessageCircle,
-  Star,
-  Heart,
-  UserPlus,
-  Calendar,
-  Check,
-  X,
-  Settings,
-  Filter
-} from "lucide-react";
-import Navigation from "@/components/Navigation";
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import Navigation from '@/components/Navigation';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Bell, BellOff, Check, Trash2, Clock } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock data
-const notifications = [
-  {
-    id: 1,
-    type: "message",
-    title: "Nova mensagem",
-    content: "João Silva enviou uma mensagem",
-    user: {
-      name: "João Silva",
-      avatar: null,
-      role: "Cuidador de Idosos"
-    },
-    time: "Há 5 min",
-    read: false
-  },
-  {
-    id: 2,
-    type: "review",
-    title: "Nova avaliação",
-    content: "Ana Costa deixou uma avaliação de 5 estrelas para você",
-    user: {
-      name: "Ana Costa",
-      avatar: null,
-      role: "Cliente"
-    },
-    time: "Há 1 hora",
-    read: false
-  },
-  {
-    id: 3,
-    type: "like",
-    title: "Curtida no post",
-    content: "Maria Santos curtiu sua publicação",
-    user: {
-      name: "Maria Santos",
-      avatar: null,
-      role: "Diarista"
-    },
-    time: "Há 2 horas",
-    read: true
-  },
-  {
-    id: 4,
-    type: "follow",
-    title: "Novo seguidor",
-    content: "Carlos Lima começou a seguir você",
-    user: {
-      name: "Carlos Lima",
-      avatar: null,
-      role: "Cliente"
-    },
-    time: "Há 3 horas",
-    read: true
-  },
-  {
-    id: 5,
-    type: "booking",
-    title: "Novo agendamento",
-    content: "Fernanda Oliveira agendou um serviço para amanhã",
-    user: {
-      name: "Fernanda Oliveira",
-      avatar: null,
-      role: "Cliente"
-    },
-    time: "Há 5 horas",
-    read: false
-  }
-];
-
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case "message":
-      return MessageCircle;
-    case "review":
-      return Star;
-    case "like":
-      return Heart;
-    case "follow":
-      return UserPlus;
-    case "booking":
-      return Calendar;
-    default:
-      return Bell;
-  }
-};
-
-const getNotificationColor = (type: string) => {
-  switch (type) {
-    case "message":
-      return "text-blue-500";
-    case "review":
-      return "text-yellow-500";
-    case "like":
-      return "text-red-500";
-    case "follow":
-      return "text-green-500";
-    case "booking":
-      return "text-purple-500";
-    default:
-      return "text-gray-500";
-  }
-};
+interface Notification {
+  id: string;
+  title: string;
+  content: string | null;
+  type: string;
+  read: boolean;
+  created_at: string;
+  from_user_id?: string;
+  post_id?: string;
+  comment_id?: string;
+}
 
 const Notifications = () => {
-  const [filter, setFilter] = useState("all");
-  const [readNotifications, setReadNotifications] = useState<number[]>([3, 4]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toast } = useToast();
 
-  const markAsRead = (notificationId: number) => {
-    setReadNotifications(prev => 
-      prev.includes(notificationId) 
-        ? prev 
-        : [...prev, notificationId]
-    );
+  useEffect(() => {
+    fetchNotifications();
+    
+    // Configurar realtime para notificações
+    const channel = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user?.id}`,
+        },
+        () => {
+          fetchNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+  const fetchNotifications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setNotifications(data || []);
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as notificações.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const markAllAsRead = () => {
-    setReadNotifications(notifications.map(n => n.id));
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notif =>
+          notif.id === notificationId ? { ...notif, read: true } : notif
+        )
+      );
+    } catch (error) {
+      console.error('Erro ao marcar como lida:', error);
+    }
   };
 
-  const filteredNotifications = notifications.filter(notification => {
-    if (filter === "unread") return !readNotifications.includes(notification.id);
-    if (filter === "read") return readNotifications.includes(notification.id);
-    return true;
-  });
+  const markAllAsRead = async () => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', user?.id)
+        .eq('read', false);
 
-  const unreadCount = notifications.filter(n => !readNotifications.includes(n.id)).length;
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(notif => ({ ...notif, read: true }))
+      );
+
+      toast({
+        title: "Sucesso",
+        description: "Todas as notificações foram marcadas como lidas.",
+      });
+    } catch (error) {
+      console.error('Erro ao marcar todas como lidas:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível marcar todas como lidas.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteNotification = async (notificationId: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.filter(notif => notif.id !== notificationId)
+      );
+
+      toast({
+        title: "Notificação removida",
+        description: "A notificação foi excluída com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao excluir notificação:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir a notificação.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 py-6 max-w-2xl">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">Notificações</h1>
-              {unreadCount > 0 && (
-                <p className="text-muted-foreground">
-                  Você tem {unreadCount} notificação{unreadCount > 1 ? 'ões' : ''} não lida{unreadCount > 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {unreadCount > 0 && (
-                <Button variant="outline" size="sm" onClick={markAllAsRead}>
-                  <Check className="h-4 w-4 mr-2" />
-                  Marcar todas como lidas
-                </Button>
-              )}
-              <Button variant="outline" size="icon">
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Filters */}
-          <div className="flex items-center space-x-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Button
-              variant={filter === "all" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("all")}
-            >
-              Todas ({notifications.length})
-            </Button>
-            <Button
-              variant={filter === "unread" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("unread")}
-            >
-              Não lidas ({unreadCount})
-            </Button>
-            <Button
-              variant={filter === "read" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setFilter("read")}
-            >
-              Lidas ({notifications.length - unreadCount})
-            </Button>
-          </div>
-        </div>
-
-        {/* Notifications List */}
-        <div className="space-y-3">
-          {filteredNotifications.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Bell className="h-8 w-8 text-muted-foreground" />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="container mx-auto px-4 py-6 max-w-2xl">
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Bell className="h-6 w-6" />
+                  <h1 className="text-2xl font-bold">Notificações</h1>
+                  {unreadCount > 0 && (
+                    <span className="bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-lg font-semibold mb-2">
-                  {filter === "unread" ? "Nenhuma notificação não lida" : "Nenhuma notificação"}
-                </h3>
+                {unreadCount > 0 && (
+                  <Button variant="outline" size="sm" onClick={markAllAsRead}>
+                    <Check className="h-4 w-4 mr-2" />
+                    Marcar todas como lidas
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+          </Card>
+
+          {loading ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-6">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-full"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : notifications.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <BellOff className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-xl font-medium mb-2">Nenhuma notificação</h3>
                 <p className="text-muted-foreground">
-                  {filter === "unread" 
-                    ? "Todas as suas notificações foram lidas!" 
-                    : "Você não tem notificações ainda."
-                  }
+                  Você receberá notificações sobre curtidas, comentários e outras atividades aqui.
                 </p>
               </CardContent>
             </Card>
           ) : (
-            filteredNotifications.map((notification) => {
-              const isRead = readNotifications.includes(notification.id);
-              const Icon = getNotificationIcon(notification.type);
-              const iconColor = getNotificationColor(notification.type);
-
-              return (
+            <div className="space-y-4">
+              {notifications.map((notification) => (
                 <Card 
                   key={notification.id} 
-                  className={`cursor-pointer transition-all hover:shadow-medium ${
-                    !isRead ? 'border-l-4 border-l-primary bg-primary/5' : ''
+                  className={`transition-colors ${
+                    !notification.read ? 'border-primary bg-primary/5' : ''
                   }`}
-                  onClick={() => markAsRead(notification.id)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      {/* Notification Icon */}
-                      <div className={`p-2 bg-muted rounded-full ${iconColor}`}>
-                        <Icon className="h-4 w-4" />
-                      </div>
-
-                      {/* User Avatar */}
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={notification.user.avatar || undefined} />
-                        <AvatarFallback className="bg-gradient-primary text-white text-sm">
-                          {notification.user.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className={`font-semibold ${!isRead ? 'text-primary' : ''}`}>
-                              {notification.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground mb-1">
-                              {notification.content}
-                            </p>
-                            <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                              <span>{notification.user.role}</span>
-                              <span>•</span>
-                              <span>{notification.time}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center space-x-2">
-                            {!isRead && (
-                              <div className="w-2 h-2 bg-primary rounded-full"></div>
-                            )}
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <h3 className="font-medium">{notification.title}</h3>
+                          {!notification.read && (
+                            <div className="w-2 h-2 bg-primary rounded-full"></div>
+                          )}
                         </div>
+                        {notification.content && (
+                          <p className="text-sm text-muted-foreground">
+                            {notification.content}
+                          </p>
+                        )}
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {formatDistanceToNow(new Date(notification.created_at), { 
+                            addSuffix: true, 
+                            locale: ptBR 
+                          })}
+                          <span className="mx-2">•</span>
+                          <span className="capitalize">{notification.type}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => markAsRead(notification.id)}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteNotification(notification.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              );
-            })
+              ))}
+            </div>
           )}
         </div>
-
-        {/* Load More */}
-        {filteredNotifications.length > 0 && (
-          <div className="text-center mt-6">
-            <Button variant="outline">
-              Carregar mais notificações
-            </Button>
-          </div>
-        )}
+        <div className="h-20 lg:hidden"></div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 };
 

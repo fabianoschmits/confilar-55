@@ -41,22 +41,23 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
   const fetchComments = async () => {
     setLoading(true);
     try {
-      const { data: commentsData, error } = await supabase
+      // Fetch comments
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
         .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (commentsError) throw commentsError;
 
       // Fetch profiles separately
-      const userIds = commentsData?.map(comment => comment.user_id) || [];
+      const userIds = commentsData?.map(c => c.user_id) || [];
       const { data: profilesData } = await supabase
         .from('profiles')
         .select('user_id, full_name')
         .in('user_id', userIds);
 
-      // Combine comments with profiles
+      // Combine data
       const commentsWithProfiles = commentsData?.map(comment => ({
         ...comment,
         profiles: profilesData?.find(p => p.user_id === comment.user_id) || null
