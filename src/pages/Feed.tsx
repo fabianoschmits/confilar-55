@@ -20,9 +20,6 @@ interface Post {
   location: string | null;
   created_at: string;
   user_id: string;
-  profiles: {
-    full_name: string;
-  } | null;
   likes: any[];
   comments: any[];
 }
@@ -47,7 +44,6 @@ const Feed = () => {
         .from('posts')
         .select(`
           *,
-          profiles!inner(full_name),
           likes(id),
           comments(id)
         `)
@@ -226,12 +222,12 @@ const Feed = () => {
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                             <span className="text-primary-foreground text-sm font-medium">
-                              {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
+                              {post.is_anonymous ? '?' : 'U'}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-sm">
-                              {post.is_anonymous ? 'Confissão Anônima' : post.profiles?.full_name || 'Usuário'}
+                              {post.is_anonymous ? 'Confissão Anônima' : 'Usuário'}
                             </p>
                             <div className="flex items-center text-xs text-muted-foreground">
                               <Clock className="h-3 w-3 mr-1" />
