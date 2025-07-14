@@ -226,17 +226,19 @@ const Admin = () => {
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          user_roles(role)
-        `)
-        .ilike('full_name', `%${searchEmail}%`)
-        .limit(10);
+      const { data, error } = await supabase.functions.invoke('admin-operations', {
+        body: { action: 'get_users' }
+      });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Filtrar usuários localmente baseado no termo de busca
+      const filteredUsers = (data?.data || []).filter((user: any) =>
+        user.full_name?.toLowerCase().includes(searchEmail.toLowerCase()) ||
+        user.location?.toLowerCase().includes(searchEmail.toLowerCase())
+      );
+      
+      setUsers(filteredUsers);
     } catch (error) {
       console.error('Erro na busca:', error);
       toast({

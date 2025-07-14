@@ -185,15 +185,15 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-pink-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
       <Navigation />
       
       <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Profile Header */}
-        <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+        <Card className="mb-6 bg-card rounded-3xl shadow-lg border-0 overflow-hidden">
           <CardContent className="p-0">
             {/* Background Header */}
-            <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 relative">
+            <div className="h-32 bg-gradient-primary relative">
               <div className="absolute inset-0 bg-black/20"></div>
             </div>
             
@@ -201,9 +201,9 @@ const Profile = () => {
               {/* Avatar */}
               <div className="flex justify-center -mt-16 mb-4">
                 <div className="relative">
-                  <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
+                  <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
                     <AvatarImage src={profile?.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-primary text-white text-3xl">
+                    <AvatarFallback className="bg-gradient-primary text-primary-foreground text-3xl">
                       {profile?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
@@ -212,48 +212,23 @@ const Profile = () => {
               
               {/* Profile Info */}
               <div className="text-center mb-6">
-                <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                <h1 className="text-3xl font-bold text-foreground mb-2">
                   {profile?.full_name || 'Usuário'}
                 </h1>
                 
-                <p className="text-slate-600 text-lg mb-3">
-                  {profile?.bio || 'Diarista'}
-                </p>
-                
-                {/* Rating */}
-                <div className="flex items-center justify-center space-x-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <span className="text-slate-700 font-semibold ml-2">5</span>
-                </div>
+                {profile?.bio && (
+                  <p className="text-muted-foreground text-lg mb-3">
+                    {profile.bio}
+                  </p>
+                )}
                 
                 {/* Location */}
-                <div className="flex items-center justify-center text-slate-600 mb-6">
-                  <MapPin className="h-4 w-4 mr-1" />
-                  <span>{profile?.location || 'São Paulo, SP'}</span>
-                </div>
-              </div>
-              
-              {/* Portfolio Grid */}
-              <div className="grid grid-cols-4 gap-3 mb-6">
-                {[1, 2, 3, 4].map((item) => (
-                  <div key={item} className="aspect-square bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-slate-500 text-xs text-center">
-                        <div>Foto</div>
-                        <div>{item}</div>
-                      </div>
-                    </div>
+                {profile?.location && (
+                  <div className="flex items-center justify-center text-muted-foreground mb-6">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{profile.location}</span>
                   </div>
-                ))}
-              </div>
-              
-              {/* Description */}
-              <div className="text-center mb-6">
-                <p className="text-slate-700 leading-relaxed">
-                  {profile?.bio || 'Com mais de 5 anos de experiência no cuidado do lar, sou dedicada a oferecer serviço de qualidade e atenção aos detalhes.'}
-                </p>
+                )}
               </div>
               
               {/* Action Buttons */}
@@ -262,13 +237,14 @@ const Profile = () => {
                   <>
                     <Button 
                       variant="outline"
-                      className="flex-1 py-3 rounded-2xl border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
+                      className="flex-1 py-3 rounded-2xl"
                       onClick={handleStartConversation}
                     >
+                      <MessageCircle className="h-4 w-4 mr-2" />
                       Chat
                     </Button>
                     <Button 
-                      className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold"
+                      className="flex-1 py-3 rounded-2xl"
                     >
                       Agendar Serviço
                     </Button>
@@ -277,14 +253,14 @@ const Profile = () => {
                   <>
                     <Button 
                       variant="outline" 
-                      className="flex-1 py-3 rounded-2xl border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
+                      className="flex-1 py-3 rounded-2xl"
                       onClick={() => navigate('/perfil/editar')}
                     >
                       <Edit className="h-4 w-4 mr-2" />
                       Editar Perfil
                     </Button>
                     <Button 
-                      className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold"
+                      className="flex-1 py-3 rounded-2xl"
                       onClick={() => navigate('/configuracoes')}
                     >
                       <Settings className="h-4 w-4 mr-2" />
@@ -299,63 +275,19 @@ const Profile = () => {
 
         {/* Profile Content */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="sobre">Sobre</TabsTrigger>
-            <TabsTrigger value="portfolio">Portfólio</TabsTrigger>
             <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
             <TabsTrigger value="contato">Contato</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sobre" className="mt-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold">Sobre Mim</h3>
-                </CardHeader>
-                <CardContent>
-                  <p className="leading-relaxed mb-4">{profile?.bio || 'Biografia não informada ainda.'}</p>
-                  
-                  <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Serviços Oferecidos</h4>
-                    <div className="text-sm text-muted-foreground">
-                      Configure seus serviços nas configurações do perfil
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <h3 className="text-lg font-semibold">Disponibilidade</h3>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <h4 className="font-semibold mb-2">Disponibilidade</h4>
-                    <div className="text-sm text-muted-foreground">
-                      Configure sua disponibilidade nas configurações do perfil
-                    </div>
-                  </div>
-                  
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="portfolio" className="mt-6">
             <Card>
               <CardHeader>
-                <h3 className="text-lg font-semibold">Meus Trabalhos</h3>
-                <p className="text-muted-foreground">Veja alguns dos meus trabalhos realizados</p>
+                <h3 className="text-lg font-semibold">Sobre Mim</h3>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-8">
-                  <div className="text-muted-foreground">
-                    Você ainda não adicionou nenhum trabalho ao seu portfólio.
-                  </div>
-                  <Button variant="outline" className="mt-4">
-                    Adicionar Trabalhos
-                  </Button>
-                </div>
+                <p className="leading-relaxed mb-4">{profile?.bio || 'Biografia não informada ainda.'}</p>
               </CardContent>
             </Card>
           </TabsContent>
@@ -374,43 +306,41 @@ const Profile = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Phone className="h-5 w-5 text-primary" />
+                  {profile?.phone && (
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Phone className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Telefone</p>
+                        <p className="text-muted-foreground">{profile.phone}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">Telefone</p>
-                      <p className="text-muted-foreground">{profile?.phone || 'Não informado'}</p>
-                    </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Mail className="h-5 w-5 text-primary" />
+                  {profileOwner?.email && (
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Mail className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">E-mail</p>
+                        <p className="text-muted-foreground">{profileOwner.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">E-mail</p>
-                      <p className="text-muted-foreground">{profileOwner?.email || 'Não informado'}</p>
-                    </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-primary" />
+                  {profile?.location && (
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Localização</p>
+                        <p className="text-muted-foreground">{profile.location}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold">Localização</p>
-                      <p className="text-muted-foreground">{profile?.location || 'Não informado'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                  <h4 className="font-semibold mb-2">Horário de Atendimento</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Segunda a Sexta: 8:00 - 18:00<br />
-                    Resposta em até 2 horas
-                  </p>
+                  )}
                 </div>
               </CardContent>
             </Card>

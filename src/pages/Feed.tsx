@@ -232,12 +232,12 @@ const Feed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-pink-50">
+    <div className="min-h-screen bg-muted/30">
         <Navigation />
         
         <div className="container mx-auto px-4 py-6 max-w-2xl">
           {/* Criar Post */}
-          <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0">
+          <Card className="mb-6 bg-card rounded-3xl shadow-lg border-0">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-800">Compartilha Serviço</h2>
@@ -299,7 +299,7 @@ const Feed = () => {
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="animate-pulse bg-white rounded-3xl shadow-lg border-0">
+                <Card key={i} className="animate-pulse bg-card rounded-3xl shadow-lg border-0">
                   <CardContent className="p-6">
                     <div className="space-y-3">
                       <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -311,7 +311,7 @@ const Feed = () => {
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <Card className="bg-white rounded-3xl shadow-lg border-0">
+            <Card className="bg-card rounded-3xl shadow-lg border-0">
               <CardContent className="p-12 text-center">
                 <Edit3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">Nenhum serviço ainda</h3>
@@ -330,7 +330,7 @@ const Feed = () => {
           ) : (
             <div className="space-y-6">
               {posts.map((post) => (
-                <Card key={post.id} className="bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+                <Card key={post.id} className="bg-card rounded-3xl shadow-lg border-0 overflow-hidden">
                   <CardContent className="p-0">
                     {/* Header do Post */}
                     <div className="flex items-center justify-between p-4 pb-3">
