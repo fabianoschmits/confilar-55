@@ -185,125 +185,112 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-pink-50 pb-20 md:pb-0">
       <Navigation />
       
-      <div className="container mx-auto px-4 py-6 max-w-4xl">
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
         {/* Profile Header */}
-        <Card className="mb-6 shadow-soft">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row md:items-start md:space-x-6">
-              {/* Avatar and Basic Info */}
-              <div className="flex flex-col items-center md:items-start mb-6 md:mb-0">
+        <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+          <CardContent className="p-0">
+            {/* Background Header */}
+            <div className="h-32 bg-gradient-to-r from-blue-400 to-purple-500 relative">
+              <div className="absolute inset-0 bg-black/20"></div>
+            </div>
+            
+            <div className="px-6 pb-6">
+              {/* Avatar */}
+              <div className="flex justify-center -mt-16 mb-4">
                 <div className="relative">
-                  <Avatar className="h-32 w-32 mb-4">
+                  <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
                     <AvatarImage src={profile?.avatar_url || undefined} />
                     <AvatarFallback className="bg-gradient-primary text-white text-3xl">
                       {profile?.full_name?.split(' ').map((n: string) => n[0]).join('') || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <Button 
-                    size="icon" 
-                    className="absolute bottom-2 right-2 h-8 w-8 bg-white shadow-medium hover:bg-gray-50"
-                  >
-                    <Camera className="h-4 w-4 text-gray-600" />
-                  </Button>
-                </div>
-                
-                <div className="space-y-2">
-                  {isOwnProfile ? (
-                    <>
-                      <Button 
-                        variant="outline" 
-                        className="w-full md:w-auto"
-                        onClick={() => navigate('/perfil/editar')}
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        Editar Perfil
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="w-full md:w-auto"
-                        onClick={() => navigate('/configuracoes')}
-                      >
-                        <Settings className="h-4 w-4 mr-2" />
-                        Configurações
-                      </Button>
-                    </>
-                  ) : (
-                    <UserLikeButton 
-                      targetUserId={profile?.user_id} 
-                      isOwnProfile={false}
-                    />
-                  )}
                 </div>
               </div>
-
+              
               {/* Profile Info */}
-              <div className="flex-1">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h1 className="text-3xl font-bold">{profile?.full_name || 'Usuário'}</h1>
-                    </div>
-                    
-                    <p className="text-xl text-muted-foreground mb-3">Profissional ConfiLar</p>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center space-x-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{profile?.location || 'Localização não informada'}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Mail className="h-4 w-4" />
-                        <span>{profileOwner?.email || 'Email não informado'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">
-                      {isOwnProfile ? "Complete seu perfil para começar" : "Profissional ConfiLar"}
-                    </div>
-                  </div>
+              <div className="text-center mb-6">
+                <h1 className="text-3xl font-bold text-slate-800 mb-2">
+                  {profile?.full_name || 'Usuário'}
+                </h1>
+                
+                <p className="text-slate-600 text-lg mb-3">
+                  {profile?.bio || 'Diarista'}
+                </p>
+                
+                {/* Rating */}
+                <div className="flex items-center justify-center space-x-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                  <span className="text-slate-700 font-semibold ml-2">5</span>
                 </div>
-
-                {/* Profile completion prompt - only for own profile */}
-                {isOwnProfile && (
-                  <div className="grid grid-cols-1 gap-4 mb-4">
-                    <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <div className="text-lg font-semibold text-muted-foreground mb-2">
-                        Complete seu perfil
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Adicione mais informações para atrair clientes
+                
+                {/* Location */}
+                <div className="flex items-center justify-center text-slate-600 mb-6">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{profile?.location || 'São Paulo, SP'}</span>
+                </div>
+              </div>
+              
+              {/* Portfolio Grid */}
+              <div className="grid grid-cols-4 gap-3 mb-6">
+                {[1, 2, 3, 4].map((item) => (
+                  <div key={item} className="aspect-square bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-slate-500 text-xs text-center">
+                        <div>Foto</div>
+                        <div>{item}</div>
                       </div>
                     </div>
                   </div>
-                )}
-
-                {/* Contact Buttons */}
-                {!isOwnProfile && (
-                  <div className="flex flex-wrap gap-2">
+                ))}
+              </div>
+              
+              {/* Description */}
+              <div className="text-center mb-6">
+                <p className="text-slate-700 leading-relaxed">
+                  {profile?.bio || 'Com mais de 5 anos de experiência no cuidado do lar, sou dedicada a oferecer serviço de qualidade e atenção aos detalhes.'}
+                </p>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex space-x-3">
+                {!isOwnProfile ? (
+                  <>
                     <Button 
-                      className="btn-hero flex-1 md:flex-none"
+                      variant="outline"
+                      className="flex-1 py-3 rounded-2xl border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
                       onClick={handleStartConversation}
                     >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Conversar
-                    </Button>
-                    <Button variant="outline" className="flex-1 md:flex-none">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Ligar
+                      Chat
                     </Button>
                     <Button 
-                      variant="outline" 
-                      size="icon"
-                      onClick={handleShareProfile}
+                      className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold"
                     >
-                      <Share2 className="h-4 w-4" />
+                      Agendar Serviço
                     </Button>
-                  </div>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      className="flex-1 py-3 rounded-2xl border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50"
+                      onClick={() => navigate('/perfil/editar')}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Editar Perfil
+                    </Button>
+                    <Button 
+                      className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-semibold"
+                      onClick={() => navigate('/configuracoes')}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Configurações
+                    </Button>
+                  </>
                 )}
               </div>
             </div>

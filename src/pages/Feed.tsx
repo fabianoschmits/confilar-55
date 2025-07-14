@@ -232,15 +232,15 @@ const Feed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-orange-50 to-pink-50">
         <Navigation />
         
         <div className="container mx-auto px-4 py-6 max-w-2xl">
           {/* Criar Post */}
-          <Card className="mb-6">
+          <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Compartilha Serviço</h2>
+                <h2 className="text-lg font-semibold text-slate-800">Compartilha Serviço</h2>
                 <div className="flex gap-2">
                   <Button
                     variant="soft"
@@ -299,7 +299,7 @@ const Feed = () => {
           {loading ? (
             <div className="space-y-4">
               {Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="animate-pulse">
+                <Card key={i} className="animate-pulse bg-white rounded-3xl shadow-lg border-0">
                   <CardContent className="p-6">
                     <div className="space-y-3">
                       <div className="h-4 bg-muted rounded w-1/4"></div>
@@ -311,7 +311,7 @@ const Feed = () => {
               ))}
             </div>
           ) : posts.length === 0 ? (
-            <Card>
+            <Card className="bg-white rounded-3xl shadow-lg border-0">
               <CardContent className="p-12 text-center">
                 <Edit3 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium mb-2">Nenhum serviço ainda</h3>
@@ -328,100 +328,93 @@ const Feed = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
               {posts.map((post) => (
-                <Card key={post.id}>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      {/* Header do Post */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                            <span className="text-primary-foreground text-sm font-medium">
-                              {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-sm">
-                              {post.is_anonymous ? (
-                                'Serviço Anônimo'
-                              ) : (
-                                <Link 
-                                  to={`/perfil/${post.user_id}`}
-                                  className="hover:text-primary transition-colors"
-                                >
-                                  {post.profiles?.full_name || 'Usuário'}
-                                </Link>
-                              )}
-                            </p>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {formatDistanceToNow(new Date(post.created_at), { 
-                                addSuffix: true, 
-                                locale: ptBR 
-                              })}
-                              {post.location && (
-                                <>
-                                  <span className="mx-2">•</span>
-                                  <MapPin className="h-3 w-3 mr-1" />
-                                  {post.location}
-                                </>
-                              )}
-                            </div>
-                          </div>
+                <Card key={post.id} className="bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+                  <CardContent className="p-0">
+                    {/* Header do Post */}
+                    <div className="flex items-center justify-between p-4 pb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-slate-600 rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-medium">
+                            {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-slate-800 text-lg">
+                            {post.is_anonymous ? (
+                              'Serviço Anônimo'
+                            ) : (
+                              <Link 
+                                to={`/perfil/${post.user_id}`}
+                                className="hover:text-primary transition-colors"
+                              >
+                                {post.profiles?.full_name || 'Usuário'}
+                              </Link>
+                            )}
+                          </p>
+                          <p className="text-slate-600 text-sm">
+                            Profissional
+                          </p>
                         </div>
                       </div>
+                      <Button variant="ghost" size="sm" className="text-slate-600">
+                        ⋯
+                      </Button>
+                    </div>
 
-                      {/* Conteúdo */}
-                      <p className="text-sm leading-relaxed">{post.content}</p>
+                    {/* Imagem placeholder (simulando imagem do serviço) */}
+                    <div className="w-full h-64 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                      <div className="text-slate-500 text-center">
+                        <div className="text-sm font-medium">Imagem do Serviço</div>
+                        <div className="text-xs mt-1">Configure nas configurações</div>
+                      </div>
+                    </div>
+
+                    {/* Conteúdo */}
+                    <div className="p-4">
+                      <p className="text-slate-700 leading-relaxed mb-4">{post.content}</p>
+                      
+                      {post.location && (
+                        <div className="flex items-center text-sm text-slate-500 mb-4">
+                          <MapPin className="h-4 w-4 mr-1" />
+                          {post.location}
+                        </div>
+                      )}
 
                       {/* Ações */}
-                      <div className="flex items-center justify-between pt-2 border-t">
-                        <div className="flex items-center space-x-6">
-                          <ReactionButton 
-                            postId={post.id}
-                            reactions={post.likes || []}
-                            onReactionChange={(count) => {
-                              setPosts(prevPosts => 
-                                prevPosts.map(p => 
-                                  p.id === post.id 
-                                    ? { ...p, likes: Array(count).fill({ id: 'temp' }) }
-                                    : p
-                                )
-                              );
-                            }}
-                          />
+                      <div className="flex items-center justify-center space-x-8 pt-4 border-t border-gray-100">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-600 hover:text-blue-600 flex items-center space-x-2 text-base font-medium"
+                          onClick={() => toggleLike(post.id)}
+                        >
+                          <Heart className={`h-5 w-5 ${likedPosts.has(post.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                          <span>Curtir</span>
+                        </Button>
+                        
+                        <div className="text-slate-600 hover:text-blue-600 flex items-center space-x-2 text-base font-medium">
                           <CommentSection 
                             postId={post.id}
                             commentsCount={post.comments?.length || 0}
                             onCommentsChange={(count) => handleCommentsChange(post.id, count)}
                           />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted-foreground hover:text-primary transition-all duration-200 hover:scale-105"
-                            onClick={() => {
-                              navigator.share?.({
-                                title: 'Serviço',
-                                text: post.content,
-                                url: window.location.href
-                              }).catch(() => {
-                                navigator.clipboard.writeText(window.location.href);
-                                toast({
-                                  title: "Link copiado!",
-                                  description: "O link foi copiado para a área de transferência."
-                                });
-                              });
-                            }}
-                          >
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Compartilhar
-                          </Button>
                         </div>
-                        <BlockReportMenu 
-                          userId={post.user_id}
-                          postId={post.id}
-                        />
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-slate-600 hover:text-blue-600 flex items-center space-x-2 text-base font-medium"
+                          onClick={() => {
+                            if (!post.is_anonymous) {
+                              navigate(`/perfil/${post.user_id}`);
+                            }
+                          }}
+                        >
+                          <Share2 className="h-5 w-5" />
+                          <span>Entrar em contato</span>
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
