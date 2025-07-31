@@ -107,6 +107,33 @@ export type Database = {
           },
         ]
       }
+      oauth_providers: {
+        Row: {
+          created_at: string
+          id: string
+          provider_email: string | null
+          provider_name: string
+          provider_user_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          provider_email?: string | null
+          provider_name: string
+          provider_user_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          provider_email?: string | null
+          provider_name?: string
+          provider_user_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           content: string
@@ -259,10 +286,15 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
+          birth_date: string | null
           city: string | null
           created_at: string
           full_name: string
+          gender: string | null
           id: string
+          is_verified: boolean | null
+          location: string | null
           phone: string | null
           state: string | null
           updated_at: string
@@ -270,10 +302,15 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
           city?: string | null
           created_at?: string
           full_name: string
+          gender?: string | null
           id?: string
+          is_verified?: boolean | null
+          location?: string | null
           phone?: string | null
           state?: string | null
           updated_at?: string
@@ -281,10 +318,15 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
           city?: string | null
           created_at?: string
           full_name?: string
+          gender?: string | null
           id?: string
+          is_verified?: boolean | null
+          location?: string | null
           phone?: string | null
           state?: string | null
           updated_at?: string

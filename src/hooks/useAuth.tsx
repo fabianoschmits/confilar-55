@@ -7,8 +7,19 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signUp: (userData: {
+    email: string;
+    password: string;
+    fullName: string;
+    city: string;
+    state: string;
+    birthDate: string;
+    gender: string;
+    bio?: string;
+  }) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ error: any }>;
+  signInWithProvider: (provider: 'google' | 'facebook' | 'apple') => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,17 +55,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (userData: {
+    email: string;
+    password: string;
+    fullName: string;
+    city: string;
+    state: string;
+    birthDate: string;
+    gender: string;
+    bio?: string;
+  }) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: userData.email,
+      password: userData.password,
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          full_name: fullName,
+          full_name: userData.fullName,
+          city: userData.city,
+          state: userData.state,
+          birth_date: userData.birthDate,
+          gender: userData.gender,
+          location: `${userData.city}, ${userData.state}`,
+          bio: userData.bio || '',
         },
+      },
+    });
+    return { error };
+  };
+
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    return { error };
+  };
+
+  const signInWithProvider = async (provider: 'google' | 'facebook' | 'apple') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/feed`,
       },
     });
     return { error };
@@ -72,6 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
+    resetPassword,
+    signInWithProvider,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

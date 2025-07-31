@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import Feed from "./pages/Feed";
 import Search from "./pages/Search";
 import Explore from "./pages/Explore";
@@ -35,6 +36,11 @@ const App = () => (
             <Route path="/login" element={
               <ProtectedRoute requireAuth={false}>
                 <Login />
+              </ProtectedRoute>
+            } />
+            <Route path="/reset-password" element={
+              <ProtectedRoute requireAuth={false}>
+                <ResetPassword />
               </ProtectedRoute>
             } />
             <Route path="/feed" element={
