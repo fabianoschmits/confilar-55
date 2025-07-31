@@ -51,15 +51,15 @@ serve(async (req) => {
       );
     }
 
-    // Verify user is admin
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+    // Verify user is admin using security definer function
+    const { data: hasAdminRole, error: roleError } = await supabaseAdmin
+      .rpc('has_role', { 
+        _user_id: user.id, 
+        _role: 'admin' 
+      });
 
-    if (roleError || !roleData) {
+    if (roleError || !hasAdminRole) {
+      console.error('Admin verification failed:', roleError);
       return new Response(
         JSON.stringify({ error: 'Admin access required' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -107,7 +107,7 @@ serve(async (req) => {
           throw new Error('User ID and role required');
         }
         
-        const { data: assignResult, error: assignError } = await supabaseAdmin
+        const { error: assignError } = await supabaseAdmin
           .rpc('assign_user_role', {
             target_user_id: payload.userId,
             new_role: payload.role,
@@ -123,7 +123,7 @@ serve(async (req) => {
           throw new Error('User ID required');
         }
         
-        const { data: removeResult, error: removeError } = await supabaseAdmin
+        const { error: removeError } = await supabaseAdmin
           .rpc('remove_user_role', {
             target_user_id: payload.userId,
             reason: payload.reason || 'Admin removal'

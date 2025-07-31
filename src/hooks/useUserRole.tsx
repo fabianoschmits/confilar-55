@@ -21,11 +21,23 @@ export function useUserRole() {
 
   const fetchUserRole = async () => {
     try {
-      // Temporarily set all users as regular users
-      // until user_roles table is properly implemented
-      setRole('user');
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user?.id)
+        .order('assigned_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        setRole('user');
+        return;
+      }
+
+      setRole((data?.role as UserRole) || 'user');
     } catch (error) {
-      console.error('Erro ao buscar role:', error);
+      console.error('Error fetching user role:', error);
       setRole('user');
     } finally {
       setLoading(false);
