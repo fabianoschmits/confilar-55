@@ -14,9 +14,10 @@ import { useToast } from '@/hooks/use-toast';
 interface Comment {
   id: string;
   content: string;
-  is_anonymous: boolean;
   created_at: string;
   user_id: string;
+  post_id: string;
+  updated_at: string;
   profiles?: {
     full_name?: string;
   } | null;
@@ -43,7 +44,7 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
     try {
       // Fetch comments
       const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
+        .from('post_comments')
         .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
@@ -77,10 +78,9 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
     setSubmitting(true);
     try {
       const { error } = await supabase
-        .from('comments')
+        .from('post_comments')
         .insert([{
           content: newComment,
-          is_anonymous: isAnonymous,
           post_id: postId,
           user_id: user?.id,
         }]);
@@ -138,16 +138,7 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
                 className="min-h-[80px] resize-none"
               />
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id={`anonymous-comment-${postId}`}
-                    checked={isAnonymous}
-                    onCheckedChange={setIsAnonymous}
-                  />
-                  <Label htmlFor={`anonymous-comment-${postId}`} className="text-sm">
-                    Comentar anonimamente
-                  </Label>
-                </div>
+                <div></div>
                 <Button 
                   onClick={createComment} 
                   disabled={!newComment.trim() || submitting}
@@ -189,12 +180,12 @@ const CommentSection = ({ postId, commentsCount, onCommentsChange }: CommentSect
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                            <span className="text-primary-foreground text-xs font-medium">
-                              {comment.is_anonymous ? '?' : (comment.profiles?.full_name?.[0] || 'U')}
-                            </span>
-                          </div>
-                          <span className="text-sm font-medium">
-                            {comment.is_anonymous ? 'Anônimo' : comment.profiles?.full_name || 'Usuário'}
+                             <span className="text-primary-foreground text-xs font-medium">
+                               {comment.profiles?.full_name?.[0] || 'U'}
+                             </span>
+                           </div>
+                           <span className="text-sm font-medium">
+                             {comment.profiles?.full_name || 'Usuário'}
                           </span>
                         </div>
                         <div className="flex items-center text-xs text-muted-foreground">

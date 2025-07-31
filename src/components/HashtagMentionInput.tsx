@@ -71,19 +71,21 @@ const HashtagMentionInput = ({
   const searchHashtags = async (query: string) => {
     try {
       // Search for existing hashtags in posts
+      // Since posts table doesn't have hashtags column, let's extract from content
       const { data, error } = await supabase
         .from('posts')
-        .select('hashtags')
-        .not('hashtags', 'is', null)
+        .select('content')
         .limit(50);
 
       if (error) throw error;
 
       const allHashtags = new Set<string>();
       data?.forEach(post => {
-        post.hashtags?.forEach((tag: string) => {
-          if (tag.toLowerCase().includes(query.toLowerCase())) {
-            allHashtags.add(tag);
+        const hashtags = post.content.match(/#(\w+)/g) || [];
+        hashtags.forEach(tag => {
+          const cleanTag = tag.slice(1); // Remove #
+          if (cleanTag.toLowerCase().includes(query.toLowerCase())) {
+            allHashtags.add(cleanTag);
           }
         });
       });

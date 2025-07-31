@@ -13,10 +13,12 @@ import { ptBR } from "date-fns/locale";
 
 interface ProfileComment {
   id: string;
-  content: string;
+  comment: string;
   rating: number;
   created_at: string;
-  commenter_user_id: string;
+  reviewer_id: string;
+  professional_id: string;
+  updated_at: string;
   commenter_profile?: {
     full_name: string;
     avatar_url: string;
@@ -45,15 +47,15 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
     setLoading(true);
     try {
       const { data: commentsData, error } = await supabase
-        .from('profile_comments')
+        .from('reviews')
         .select('*')
-        .eq('profile_user_id', profileUserId)
+        .eq('professional_id', profileUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       // Fetch commenter profiles separately
-      const commenterIds = commentsData?.map(c => c.commenter_user_id) || [];
+      const commenterIds = commentsData?.map(c => c.reviewer_id) || [];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('user_id, full_name, avatar_url')
@@ -61,7 +63,7 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
 
       const commentsWithProfiles = commentsData?.map(comment => ({
         ...comment,
-        commenter_profile: profiles?.find(p => p.user_id === comment.commenter_user_id)
+        commenter_profile: profiles?.find(p => p.user_id === comment.reviewer_id)
       })) || [];
 
       setComments(commentsWithProfiles);
@@ -83,11 +85,11 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
     setSubmitting(true);
     try {
       const { error } = await supabase
-        .from('profile_comments')
+        .from('reviews')
         .insert({
-          profile_user_id: profileUserId,
-          commenter_user_id: user.id,
-          content: newComment.trim(),
+          professional_id: profileUserId,
+          reviewer_id: user.id,
+          comment: newComment.trim(),
           rating: newRating
         });
 
@@ -115,7 +117,7 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
   const deleteComment = async (commentId: string) => {
     try {
       const { error } = await supabase
-        .from('profile_comments')
+        .from('reviews')
         .delete()
         .eq('id', commentId);
 
@@ -137,7 +139,7 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
   };
 
   const canDeleteComment = (comment: ProfileComment) => {
-    return user && (comment.commenter_user_id === user.id || isOwnProfile);
+    return user && (comment.reviewer_id === user.id || isOwnProfile);
   };
 
   const renderStars = (rating: number) => {
@@ -260,7 +262,7 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
                     </Button>
                   )}
                 </div>
-                <p className="text-sm leading-relaxed">{comment.content}</p>
+                <p className="text-sm leading-relaxed">{comment.comment}</p>
               </div>
             ))
           )}

@@ -25,78 +25,21 @@ const UserLikeButton = ({ targetUserId, isOwnProfile = false }: UserLikeButtonPr
   }, [user, targetUserId]);
 
   const fetchLikeStatus = async () => {
-    if (!user || isOwnProfile) return;
-
-    try {
-      const { data } = await supabase
-        .from('user_likes')
-        .select('id')
-        .eq('from_user_id', user.id)
-        .eq('to_user_id', targetUserId)
-        .maybeSingle();
-
-      setIsLiked(!!data);
-    } catch (error) {
-      console.error('Erro ao verificar like:', error);
-    }
+    // Disabled for now - user_likes table doesn't exist
+    setIsLiked(false);
   };
 
   const fetchLikesCount = async () => {
-    try {
-      const { count } = await supabase
-        .from('user_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('to_user_id', targetUserId);
-
-      setLikesCount(count || 0);
-    } catch (error) {
-      console.error('Erro ao buscar contagem de likes:', error);
-    }
+    // Disabled for now - user_likes table doesn't exist
+    setLikesCount(0);
   };
 
   const toggleLike = async () => {
-    if (!user || isOwnProfile) return;
-
-    setLoading(true);
-    try {
-      if (isLiked) {
-        await supabase
-          .from('user_likes')
-          .delete()
-          .eq('from_user_id', user.id)
-          .eq('to_user_id', targetUserId);
-
-        setIsLiked(false);
-        setLikesCount(prev => prev - 1);
-        toast({
-          title: "Like removido",
-          description: "Você removeu seu like deste usuário.",
-        });
-      } else {
-        await supabase
-          .from('user_likes')
-          .insert({
-            from_user_id: user.id,
-            to_user_id: targetUserId
-          });
-
-        setIsLiked(true);
-        setLikesCount(prev => prev + 1);
-        toast({
-          title: "Like adicionado",
-          description: "Você curtiu este usuário!",
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao dar like:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível processar seu like.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Disabled for now - user_likes table doesn't exist
+    toast({
+      title: "Em desenvolvimento",
+      description: "Funcionalidade de likes será implementada em breve.",
+    });
   };
 
   if (isOwnProfile) {

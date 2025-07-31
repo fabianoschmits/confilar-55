@@ -120,8 +120,8 @@ const AccountSettings = () => {
       const [postsData, profileData, likesData, commentsData] = await Promise.all([
         supabase.from('posts').select('*').eq('user_id', user?.id),
         supabase.from('profiles').select('*').eq('user_id', user?.id).maybeSingle(),
-        supabase.from('likes').select('*').eq('user_id', user?.id),
-        supabase.from('comments').select('*').eq('user_id', user?.id)
+        supabase.from('post_likes').select('*').eq('user_id', user?.id),
+        supabase.from('post_comments').select('*').eq('user_id', user?.id)
       ]);
 
       const userData = {

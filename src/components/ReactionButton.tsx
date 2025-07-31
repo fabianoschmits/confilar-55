@@ -46,84 +46,21 @@ const ReactionButton = ({ postId, commentId, reactions, onReactionChange }: Reac
   }, [reactions, user?.id]);
 
   const loadUserReaction = async () => {
-    if (!user?.id) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('reactions')
-        .select('reaction_type')
-        .eq('user_id', user.id)
-        .eq(postId ? 'post_id' : 'comment_id', postId || commentId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setUserReaction(data?.reaction_type || null);
-    } catch (error) {
-      console.error('Erro ao carregar reação:', error);
-    }
+    // Disabled for now - reactions table doesn't exist
+    return;
   };
 
   const calculateReactionCounts = () => {
-    const counts: Record<string, number> = {};
-    reactions.forEach(reaction => {
-      counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
-    });
-    setReactionCounts(counts);
+    // Disabled for now - reactions table doesn't exist
+    setReactionCounts({});
   };
 
   const handleReaction = async (reactionType: string) => {
-    if (!user?.id) return;
-
-    try {
-      if (userReaction === reactionType) {
-        // Remove reaction
-        const { error } = await supabase
-          .from('reactions')
-          .delete()
-          .eq('user_id', user.id)
-          .eq(postId ? 'post_id' : 'comment_id', postId || commentId);
-
-        if (error) throw error;
-        setUserReaction(null);
-      } else {
-        // Add or update reaction
-        const { error } = await supabase
-          .from('reactions')
-          .upsert({
-            user_id: user.id,
-            post_id: postId || null,
-            comment_id: commentId || null,
-            reaction_type: reactionType as 'like' | 'love' | 'laugh' | 'angry' | 'sad' | 'wow',
-          }, {
-            onConflict: postId ? 'user_id,post_id' : 'user_id,comment_id'
-          });
-
-        if (error) throw error;
-        setUserReaction(reactionType);
-      }
-
-      // Reload reactions
-      const { data: newReactions } = await supabase
-        .from('reactions')
-        .select('*')
-        .eq(postId ? 'post_id' : 'comment_id', postId || commentId);
-
-      if (newReactions) {
-        const counts: Record<string, number> = {};
-        newReactions.forEach(reaction => {
-          counts[reaction.reaction_type] = (counts[reaction.reaction_type] || 0) + 1;
-        });
-        setReactionCounts(counts);
-        onReactionChange?.(newReactions.length);
-      }
-    } catch (error) {
-      console.error('Erro ao reagir:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível reagir ao post.",
-        variant: "destructive",
-      });
-    }
+    // Disabled for now - reactions table doesn't exist
+    toast({
+      title: "Em desenvolvimento",
+      description: "Reações serão implementadas em breve.",
+    });
   };
 
   const totalReactions = Object.values(reactionCounts).reduce((sum, count) => sum + count, 0);
