@@ -41,9 +41,9 @@ const EditProfile = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 
@@ -76,19 +76,25 @@ const EditProfile = () => {
 
     setLoading(true);
     try {
+      const profileData = {
+        user_id: user.id,
+        full_name: fullName.trim(),
+        phone: phone.trim() || null,
+        city: city.trim() || null,
+        state: state.trim() || null,
+        bio: bio.trim() || null,
+        birth_date: birthDate || null,
+        gender: gender || null,
+        location: location.trim() || null,
+        avatar_url: avatarUrl || null,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .upsert({
-          user_id: user.id,
-          full_name: fullName,
-          phone: phone,
-          city: city,
-          state: state,
-          bio: bio,
-          birth_date: birthDate || null,
-          gender: gender || null,
-          location: location,
-          avatar_url: avatarUrl
+        .upsert(profileData, {
+          onConflict: 'user_id',
+          ignoreDuplicates: false
         });
 
       if (error) throw error;
@@ -103,7 +109,7 @@ const EditProfile = () => {
       console.error('Erro ao atualizar perfil:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o perfil.",
+        description: "Não foi possível atualizar o perfil. Tente novamente.",
         variant: "destructive",
       });
     } finally {
