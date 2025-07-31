@@ -6,23 +6,20 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Heart, MessageCircle, Share2, MapPin, Clock, Edit3, Plus } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Edit3, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import CommentSection from '@/components/CommentSection';
 import HashtagMentionInput from '@/components/HashtagMentionInput';
-import ReactionButton from '@/components/ReactionButton';
-import BlockReportMenu from '@/components/BlockReportMenu';
 import { Link, useNavigate } from 'react-router-dom';
 
 interface Post {
   id: string;
   content: string;
-  is_anonymous: boolean;
-  location: string | null;
+  image_url: string | null;
+  likes_count: number;
+  comments_count: number;
   created_at: string;
   user_id: string;
   profiles?: {
@@ -38,7 +35,6 @@ const Feed = () => {
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [newPost, setNewPost] = useState('');
   const [extractedHashtags, setExtractedHashtags] = useState<string[]>([]);
-  const [isAnonymous, setIsAnonymous] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
   const { user } = useAuth();
@@ -115,9 +111,7 @@ const Feed = () => {
         .from('posts')
         .insert([{
           content: newPost,
-          is_anonymous: isAnonymous,
-          user_id: user?.id,
-          hashtags: extractedHashtags.length > 0 ? extractedHashtags : null,
+          user_id: user?.id
         }]);
 
       if (error) throw error;
@@ -252,14 +246,6 @@ const Feed = () => {
                   rows={5}
                 />
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id="anonymous"
-                      checked={isAnonymous}
-                      onCheckedChange={setIsAnonymous}
-                    />
-                    <Label htmlFor="anonymous">Postar anonimamente</Label>
-                  </div>
                   <Button 
                     onClick={createPost} 
                     disabled={!newPost.trim() || submitting}
@@ -313,24 +299,20 @@ const Feed = () => {
                     {/* Header do Post */}
                     <div className="flex items-center justify-between p-4 pb-3">
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-slate-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-sm font-medium">
-                            {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
-                          </span>
-                        </div>
+                         <div className="w-12 h-12 bg-slate-600 rounded-full flex items-center justify-center">
+                           <span className="text-white text-sm font-medium">
+                             {post.profiles?.full_name?.[0] || 'U'}
+                           </span>
+                         </div>
                         <div>
-                          <p className="font-semibold text-slate-800 text-lg">
-                            {post.is_anonymous ? (
-                              'Serviço Anônimo'
-                            ) : (
-                              <Link 
-                                to={`/perfil/${post.user_id}`}
-                                className="hover:text-primary transition-colors"
-                              >
-                                {post.profiles?.full_name || 'Usuário'}
-                              </Link>
-                            )}
-                          </p>
+                           <p className="font-semibold text-slate-800 text-lg">
+                             <Link 
+                               to={`/perfil/${post.user_id}`}
+                               className="hover:text-primary transition-colors"
+                             >
+                               {post.profiles?.full_name || 'Usuário'}
+                             </Link>
+                           </p>
                           <p className="text-slate-600 text-sm">
                             Profissional
                           </p>
@@ -353,12 +335,6 @@ const Feed = () => {
                     <div className="p-4">
                       <p className="text-slate-700 leading-relaxed mb-4">{post.content}</p>
                       
-                      {post.location && (
-                        <div className="flex items-center text-sm text-slate-500 mb-4">
-                          <MapPin className="h-4 w-4 mr-1" />
-                          {post.location}
-                        </div>
-                      )}
 
                       {/* Ações */}
                       <div className="flex items-center justify-center space-x-8 pt-4 border-t border-gray-100">
@@ -384,11 +360,7 @@ const Feed = () => {
                           variant="ghost"
                           size="sm"
                           className="text-slate-600 hover:text-blue-600 flex items-center space-x-2 text-base font-medium"
-                          onClick={() => {
-                            if (!post.is_anonymous) {
-                              navigate(`/perfil/${post.user_id}`);
-                            }
-                          }}
+                           onClick={() => navigate(`/perfil/${post.user_id}`)}
                         >
                           <Share2 className="h-5 w-5" />
                           <span>Entrar em contato</span>

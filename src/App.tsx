@@ -109,11 +109,6 @@ const App = () => (
                 <Settings />
               </ProtectedRoute>
             } />
-            <Route path="/editar-perfil" element={
-              <ProtectedRoute>
-                <EditProfile />
-              </ProtectedRoute>
-            } />
             <Route path="/onboarding" element={<Onboarding />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

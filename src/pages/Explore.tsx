@@ -259,21 +259,17 @@ const Explore = () => {
                           </Badge>
                           <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                             <span className="text-primary-foreground text-sm font-medium">
-                              {post.is_anonymous ? '?' : (post.profiles?.full_name?.[0] || 'U')}
+                              {post.profiles?.full_name?.[0] || 'U'}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-sm">
-                              {post.is_anonymous ? (
-                                'Post Anônimo'
-                              ) : (
-                                <Link 
-                                  to={`/perfil/${post.user_id}`}
-                                  className="hover:text-primary transition-colors"
-                                >
-                                  {post.profiles?.full_name || 'Usuário'}
-                                </Link>
-                              )}
+                              <Link 
+                                to={`/perfil/${post.user_id}`}
+                                className="hover:text-primary transition-colors"
+                              >
+                                {post.profiles?.full_name || 'Usuário'}
+                              </Link>
                             </p>
                             <div className="flex items-center text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(post.created_at), { 

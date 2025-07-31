@@ -163,7 +163,7 @@ const Settings = () => {
                 <div className="flex gap-4">
                   <Button 
                     variant="outline"
-                    onClick={() => navigate('/editar-perfil')}
+                    onClick={() => navigate('/perfil/editar')}
                     className="flex-1"
                   >
                     {profileType === 'professional' ? (

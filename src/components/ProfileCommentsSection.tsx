@@ -17,7 +17,7 @@ interface ProfileComment {
   rating: number;
   created_at: string;
   reviewer_id: string;
-  professional_id: string;
+  reviewed_user_id: string;
   updated_at: string;
   commenter_profile?: {
     full_name: string;
@@ -47,9 +47,9 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
     setLoading(true);
     try {
       const { data: commentsData, error } = await supabase
-        .from('reviews')
+        .from('profile_reviews')
         .select('*')
-        .eq('professional_id', profileUserId)
+        .eq('reviewed_user_id', profileUserId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -85,12 +85,14 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
     setSubmitting(true);
     try {
       const { error } = await supabase
-        .from('reviews')
-        .insert({
-          professional_id: profileUserId,
+        .from('profile_reviews')
+        .upsert({
+          reviewed_user_id: profileUserId,
           reviewer_id: user.id,
           comment: newComment.trim(),
           rating: newRating
+        }, {
+          onConflict: 'reviewed_user_id,reviewer_id'
         });
 
       if (error) throw error;
@@ -117,7 +119,7 @@ const ProfileCommentsSection = ({ profileUserId, isOwnProfile = false }: Profile
   const deleteComment = async (commentId: string) => {
     try {
       const { error } = await supabase
-        .from('reviews')
+        .from('profile_reviews')
         .delete()
         .eq('id', commentId);
 
