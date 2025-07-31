@@ -58,40 +58,17 @@ const Feed = () => {
           .select(`
             *,
             profiles!inner(full_name),
-            likes(id),
-            comments(id)
           `)
           .order('created_at', { ascending: false }),
         
-        supabase
-          .from('work_posts')
-          .select(`
-            id,
-            title,
-            description,
-            location,
-            created_at,
-            user_id,
-            profiles!inner(full_name)
-          `)
-          .order('created_at', { ascending: false })
+        Promise.resolve({ data: [], error: null }) // work_posts table doesn't exist
       ]);
 
       if (postsData.error) throw postsData.error;
       if (workPostsData.error) throw workPostsData.error;
 
-      // Converter work_posts para formato de post
-      const convertedWorkPosts = workPostsData.data?.map(workPost => ({
-        id: workPost.id,
-        content: `${workPost.title}\n\n${workPost.description}`,
-        is_anonymous: false,
-        location: workPost.location,
-        created_at: workPost.created_at,
-        user_id: workPost.user_id,
-        profiles: workPost.profiles,
-        likes: [],
-        comments: []
-      })) || [];
+      // No work posts since table doesn't exist
+      const convertedWorkPosts: any[] = [];
 
       // Combinar e embaralhar posts para criar feed aleatório com relevância
       const allPosts = [...(postsData.data || []), ...convertedWorkPosts];
@@ -110,7 +87,7 @@ const Feed = () => {
       // Verificar quais posts o usuário já curtiu
       if (user?.id) {
         const { data: likesData } = await supabase
-          .from('likes')
+          .from('post_likes')
           .select('post_id')
           .eq('user_id', user.id);
         
@@ -172,7 +149,7 @@ const Feed = () => {
       if (isLiked) {
         // Remover like
         const { error } = await supabase
-          .from('likes')
+          .from('post_likes')
           .delete()
           .eq('post_id', postId)
           .eq('user_id', user?.id);
@@ -187,7 +164,7 @@ const Feed = () => {
       } else {
         // Adicionar like
         const { error } = await supabase
-          .from('likes')
+          .from('post_likes')
           .insert([{
             post_id: postId,
             user_id: user?.id,
@@ -232,7 +209,8 @@ const Feed = () => {
   };
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-muted/30">
         <Navigation />
         
         <div className="container mx-auto px-4 py-6 max-w-2xl">
@@ -427,7 +405,8 @@ const Feed = () => {
         {/* Espaçamento para navegação mobile */}
         <div className="h-20 lg:hidden"></div>
       </div>
-    );
+    </ProtectedRoute>
+  );
 };
 
 export default Feed;

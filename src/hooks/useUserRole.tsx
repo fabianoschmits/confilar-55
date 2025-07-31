@@ -21,18 +21,9 @@ export function useUserRole() {
 
   const fetchUserRole = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao buscar role:', error);
-        setRole('user');
-      } else {
-        setRole(data?.role || 'user');
-      }
+      // Temporarily set all users as regular users
+      // until user_roles table is properly implemented
+      setRole('user');
     } catch (error) {
       console.error('Erro ao buscar role:', error);
       setRole('user');

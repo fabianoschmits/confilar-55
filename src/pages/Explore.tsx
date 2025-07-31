@@ -91,9 +91,9 @@ const Explore = () => {
       const postsWithEngagement = await Promise.all(
         posts?.map(async (post) => {
           const [likesData, commentsData, viewsData, profileData] = await Promise.all([
-            supabase.from('likes').select('id').eq('post_id', post.id),
-            supabase.from('comments').select('id').eq('post_id', post.id),
-            supabase.from('post_views').select('id').eq('post_id', post.id),
+            supabase.from('post_likes').select('id').eq('post_id', post.id),
+            supabase.from('post_comments').select('id').eq('post_id', post.id),
+            Promise.resolve({ data: [] }), // post_views table doesn't exist
             supabase.from('profiles').select('full_name').eq('user_id', post.user_id).maybeSingle()
           ]);
 
@@ -102,6 +102,7 @@ const Explore = () => {
             likes_count: likesData.data?.length || 0,
             comments_count: commentsData.data?.length || 0,
             views_count: viewsData.data?.length || 0,
+            is_anonymous: false, // field doesn't exist in current schema
             profiles: profileData.data || null
           };
         }) || []
@@ -135,7 +136,7 @@ const Explore = () => {
           const [postsData, likesData] = await Promise.all([
             supabase.from('posts').select('id').eq('user_id', profile.user_id),
             supabase
-              .from('likes')
+              .from('post_likes')
               .select('id')
               .in('post_id', 
                 (await supabase.from('posts').select('id').eq('user_id', profile.user_id)).data?.map(p => p.id) || []
@@ -145,7 +146,8 @@ const Explore = () => {
           return {
             ...profile,
             posts_count: postsData.data?.length || 0,
-            likes_received: likesData.data?.length || 0
+            likes_received: likesData.data?.length || 0,
+            is_verified: false
           };
         }) || []
       );
@@ -162,11 +164,9 @@ const Explore = () => {
 
   const loadTrendingHashtags = async () => {
     try {
-      const { data: posts, error } = await supabase
-        .from('posts')
-        .select('hashtags')
-        .not('hashtags', 'is', null)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+      // Temporarily disable hashtags since the column doesn't exist
+      const posts: any[] = [];
+      const error = null;
 
       if (error) throw error;
 

@@ -68,8 +68,8 @@ const Admin = () => {
       const [usersResult, postsResult, commentsResult, likesResult] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact' }),
         supabase.from('posts').select('id', { count: 'exact' }),
-        supabase.from('comments').select('id', { count: 'exact' }),
-        supabase.from('likes').select('id', { count: 'exact' })
+        supabase.from('post_comments').select('id', { count: 'exact' }),
+        supabase.from('post_likes').select('id', { count: 'exact' })
       ]);
 
       setStats({
@@ -102,9 +102,7 @@ const Admin = () => {
         .from('posts')
         .select(`
           *,
-          profiles(full_name),
-          comments(id),
-          likes(id)
+          profiles(full_name)
         `)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -450,8 +448,8 @@ const Admin = () => {
                       <p className="mb-2">{post.content}</p>
                       
                       <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span>{post.likes?.length || 0} likes</span>
-                        <span>{post.comments?.length || 0} comentários</span>
+                        <span>{post.likes_count || 0} likes</span>
+                        <span>{post.comments_count || 0} comentários</span>
                         {post.location && <span>📍 {post.location}</span>}
                       </div>
                     </div>
