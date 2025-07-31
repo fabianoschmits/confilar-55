@@ -40,12 +40,16 @@ All colors MUST be HSL.
     --input: 32 15% 90%;
     --ring: 190 45% 55%;
 
-    /* Gradientes modernos baseados na paleta da imagem */
+    /* Gradientes modernos minimalistas e inovadores */
     --gradient-primary: linear-gradient(135deg, hsl(190 45% 55%), hsl(12 85% 62%));
     --gradient-warm: linear-gradient(135deg, hsl(12 85% 62%), hsl(25 80% 70%));
     --gradient-cool: linear-gradient(135deg, hsl(190 45% 55%), hsl(200 50% 60%));
     --gradient-nature: linear-gradient(135deg, hsl(150 40% 55%), hsl(190 45% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(32 25% 96%) 0%, hsl(190 45% 55%) 50%, hsl(12 85% 62%) 100%);
+    --gradient-hero: radial-gradient(circle at 30% 20%, hsl(190 60% 85% / 0.3) 0%, transparent 50%), 
+                     radial-gradient(circle at 70% 80%, hsl(12 80% 88% / 0.4) 0%, transparent 50%),
+                     linear-gradient(135deg, hsl(220 20% 97%) 0%, hsl(190 20% 96%) 50%, hsl(32 15% 95%) 100%);
+    --gradient-mesh: conic-gradient(from 180deg at 50% 50%, hsl(190 60% 95%) 0deg, hsl(12 60% 95%) 120deg, hsl(220 30% 96%) 240deg, hsl(190 60% 95%) 360deg);
+    --gradient-subtle: linear-gradient(165deg, hsl(220 20% 98%) 0%, hsl(190 15% 97%) 40%, hsl(32 10% 96%) 100%);
 
     /* Sombras suaves e elegantes */
     --shadow-soft: 0 2px 12px hsla(190, 45%, 55%, 0.08);
@@ -155,6 +159,14 @@ All colors MUST be HSL.
   .bg-gradient-hero {
     background: var(--gradient-hero);
   }
+  
+  .bg-gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+  
+  .bg-gradient-subtle {
+    background: var(--gradient-subtle);
+  }
 
   /* Sombras suaves e modernas */
   .shadow-soft {
@@ -187,5 +199,79 @@ All colors MUST be HSL.
   /* Hover effects modernos */
   .hover-lift {
     @apply transition-all duration-300 hover:shadow-medium hover:-translate-y-1;
+  }
+
+  /* Background geométrico minimalista e inovador */
+  .bg-geometric {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .bg-geometric::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-hero);
+    z-index: 0;
+  }
+  
+  .bg-geometric::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 20% 30%, hsl(190 70% 90% / 0.1) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, hsl(12 70% 90% / 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 40% 90%, hsl(220 50% 95% / 0.1) 0%, transparent 30%),
+      conic-gradient(from 0deg at 60% 20%, transparent 0deg, hsl(190 30% 92% / 0.05) 60deg, transparent 120deg),
+      conic-gradient(from 180deg at 30% 80%, transparent 0deg, hsl(12 40% 95% / 0.08) 90deg, transparent 180deg);
+    animation: rotate-slow 120s linear infinite;
+    z-index: 1;
+  }
+
+  /* Elementos geométricos flutuantes minimalistas */
+  .geometric-shapes {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  
+  .geometric-shapes::before,
+  .geometric-shapes::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(45deg, hsl(190 40% 85% / 0.06), hsl(12 40% 90% / 0.08));
+  }
+  
+  .geometric-shapes::before {
+    width: 300px;
+    height: 300px;
+    top: 10%;
+    right: 15%;
+    animation: float-gentle 20s ease-in-out infinite;
+  }
+  
+  .geometric-shapes::after {
+    width: 200px;
+    height: 200px;
+    bottom: 20%;
+    left: 10%;
+    animation: float-gentle 25s ease-in-out infinite reverse;
+  }
+
+  /* Overlays sutis para profundidade */
+  .bg-overlay-grid {
+    background-image: 
+      linear-gradient(hsl(190 20% 80% / 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(190 20% 80% / 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
   }
 }
