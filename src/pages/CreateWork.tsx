@@ -40,6 +40,29 @@ const CreateWork = () => {
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const uploadFiles = async () => {
+    const uploadedUrls: string[] = [];
+    
+    for (const file of mediaFiles) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user?.id}/${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('work-media')
+        .upload(fileName, file);
+        
+      if (error) throw error;
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('work-media')
+        .getPublicUrl(data.path);
+        
+      uploadedUrls.push(publicUrl);
+    }
+    
+    return uploadedUrls;
+  };
+
   const createWork = async () => {
     if (!title.trim() || !description.trim()) {
       toast({
@@ -52,13 +75,22 @@ const CreateWork = () => {
     
     setSubmitting(true);
     try {
-      // Salvar como post regular para usar a estrutura existente
+      let mediaUrls: string[] = [];
+      
+      if (mediaFiles.length > 0) {
+        mediaUrls = await uploadFiles();
+      }
+
       const { error } = await supabase
-        .from('posts')
+        .from('works')
         .insert([{
-          content: `Título: ${title}\n\nDescrição: ${description}${category ? `\n\nCategoria: ${category}` : ''}${price ? `\n\nPreço: R$ ${price}` : ''}`,
+          title: title.trim(),
+          description: description.trim(),
+          category: category.trim() || null,
+          price: price ? parseFloat(price) : null,
+          location: location.trim() || null,
           is_anonymous: isAnonymous,
-          location,
+          media_urls: mediaUrls,
           user_id: user?.id,
         }]);
 

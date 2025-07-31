@@ -74,11 +74,15 @@ export const useCreateWork = () => {
       }
       
       const { error } = await supabase
-        .from('posts')
+        .from('works')
         .insert([{
-          content: `${title}\n\n${description}\n\nPreço: ${price ? `R$ ${price}` : 'A combinar'}\nCategoria: ${category}`,
-          location,
+          title: title.trim(),
+          description: description.trim(),
+          category: category.trim() || null,
+          price: price ? parseFloat(price) : null,
+          location: location.trim() || null,
           is_anonymous: isAnonymous,
+          media_urls: mediaUrls,
           user_id: user?.id,
         }]);
 
