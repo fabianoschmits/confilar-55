@@ -16,6 +16,7 @@ import EditProfile from "./pages/EditProfile";
 import Admin from "./pages/Admin";
 import Notifications from "./pages/Notifications";
 import UserSettings from "./pages/UserSettings";
+import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import CreateWork from "./pages/CreateWork";
 import NotFound from "./pages/NotFound";
@@ -94,6 +95,16 @@ const App = () => (
             <Route path="/configuracoes" element={
               <ProtectedRoute>
                 <UserSettings />
+              </ProtectedRoute>
+            } />
+            <Route path="/configuracoes-perfil" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            <Route path="/editar-perfil" element={
+              <ProtectedRoute>
+                <EditProfile />
               </ProtectedRoute>
             } />
             <Route path="/onboarding" element={<Onboarding />} />

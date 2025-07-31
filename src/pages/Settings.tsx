@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ import Navigation from "@/components/Navigation";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [notifications, setNotifications] = useState({
     messages: true,
     reviews: true,
@@ -329,7 +331,18 @@ const Settings = () => {
                   Excluir conta
                 </Button>
                 
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={async () => {
+                    try {
+                      await signOut();
+                      navigate('/');
+                    } catch (error) {
+                      console.error('Erro ao sair:', error);
+                    }
+                  }}
+                >
                   <LogOut className="h-4 w-4 mr-3" />
                   Sair da conta
                 </Button>

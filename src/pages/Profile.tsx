@@ -245,6 +245,12 @@ const Profile = () => {
                     </Button>
                     <Button 
                       className="flex-1 py-3 rounded-2xl"
+                      onClick={() => {
+                        toast({
+                          title: "Funcionalidade em desenvolvimento",
+                          description: "O agendamento de serviços estará disponível em breve!",
+                        });
+                      }}
                     >
                       Agendar Serviço
                     </Button>

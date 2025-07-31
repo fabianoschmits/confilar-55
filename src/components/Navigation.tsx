@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { isAdmin } = useUserRole();
+  const { signOut } = useAuth();
 
   const navItems = [
     { icon: Home, label: "Início", path: "/feed", badge: null, description: "Atividades de todos os usuários" },
@@ -76,10 +78,12 @@ const Navigation = () => {
 
           {/* User Actions */}
           <div className="flex items-center space-x-3">
-            <Button size="sm" className="btn-hero">
-              <Plus className="h-4 w-4 mr-2" />
-              Publicar
-            </Button>
+            <Link to="/postar-trabalho">
+              <Button size="sm" className="btn-hero">
+                <Plus className="h-4 w-4 mr-2" />
+                Publicar
+              </Button>
+            </Link>
             {isAdmin() && (
               <Link to="/admin">
                 <Button variant="outline" size="sm">
@@ -183,6 +187,14 @@ const Navigation = () => {
                       <Button 
                         variant="ghost" 
                         className="w-full justify-start text-destructive hover:bg-destructive/10"
+                        onClick={async () => {
+                          try {
+                            await signOut();
+                            window.location.href = '/';
+                          } catch (error) {
+                            console.error('Erro ao sair:', error);
+                          }
+                        }}
                       >
                         <LogOut className="h-5 w-5 mr-3" />
                         Sair
