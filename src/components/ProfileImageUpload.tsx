@@ -113,10 +113,10 @@ const ProfileImageUpload = ({
       // Resize and compress image
       const resizedImage = await resizeImage(file);
       
-      // Generate unique filename
+      // Generate unique filename with user folder structure
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}_${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `${userId}/avatars/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
