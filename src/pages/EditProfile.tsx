@@ -3,10 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ProfileImageUpload from '@/components/ProfileImageUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,6 +18,11 @@ const EditProfile = () => {
   const [phone, setPhone] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  const [bio, setBio] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [gender, setGender] = useState('');
+  const [location, setLocation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const { user } = useAuth();
@@ -44,6 +52,11 @@ const EditProfile = () => {
         setPhone(profile.phone || '');
         setCity(profile.city || '');
         setState(profile.state || '');
+        setBio(profile.bio || '');
+        setBirthDate(profile.birth_date || '');
+        setGender(profile.gender || '');
+        setLocation(profile.location || '');
+        setAvatarUrl(profile.avatar_url || '');
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
@@ -71,6 +84,11 @@ const EditProfile = () => {
           phone: phone,
           city: city,
           state: state,
+          bio: bio,
+          birth_date: birthDate || null,
+          gender: gender || null,
+          location: location,
+          avatar_url: avatarUrl
         });
 
       if (error) throw error;
@@ -80,7 +98,7 @@ const EditProfile = () => {
         description: "Perfil atualizado com sucesso!",
       });
 
-      navigate('/profile');
+      navigate('/perfil');
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       toast({
@@ -122,12 +140,27 @@ const EditProfile = () => {
         <div className="container mx-auto px-4 py-6 max-w-2xl">
           <h1 className="text-2xl font-bold mb-6">Editar Perfil</h1>
           
+          {/* Seção de Foto de Perfil */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Foto de Perfil</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProfileImageUpload
+                currentImageUrl={avatarUrl}
+                fullName={fullName}
+                onImageUpdate={setAvatarUrl}
+                userId={user?.id || ''}
+              />
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader>
               <CardTitle>Informações Pessoais</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="fullName">Nome Completo</Label>
                   <Input
@@ -170,6 +203,53 @@ const EditProfile = () => {
                   </div>
                 </div>
 
+                <div>
+                  <Label htmlFor="bio">Biografia</Label>
+                  <Textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Conte um pouco sobre você..."
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="location">Localização</Label>
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="São Paulo, SP"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="birthDate">Data de Nascimento</Label>
+                    <Input
+                      id="birthDate"
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="gender">Gênero</Label>
+                    <Select value={gender} onValueChange={setGender}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="masculino">Masculino</SelectItem>
+                        <SelectItem value="feminino">Feminino</SelectItem>
+                        <SelectItem value="outro">Outro</SelectItem>
+                        <SelectItem value="nao_informar">Prefiro não informar</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div className="flex gap-4 pt-4">
                   <Button type="submit" disabled={loading}>
                     {loading ? 'Salvando...' : 'Salvar Alterações'}
@@ -177,7 +257,7 @@ const EditProfile = () => {
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate('/perfil')}
                   >
                     Cancelar
                   </Button>

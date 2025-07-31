@@ -146,7 +146,7 @@ const UserSettings = () => {
             <Button 
               size="sm" 
               variant="outline"
-              onClick={() => navigate('/perfil/editar')}
+              onClick={() => navigate('/editar-perfil')}
             >
               <Edit className="h-4 w-4 mr-2" />
               Editar perfil
