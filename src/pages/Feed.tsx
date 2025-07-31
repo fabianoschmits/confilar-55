@@ -57,7 +57,7 @@ const Feed = () => {
           .from('posts')
           .select(`
             *,
-            profiles!inner(full_name),
+            profiles!inner(full_name)
           `)
           .order('created_at', { ascending: false }),
         
