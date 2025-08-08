@@ -82,7 +82,7 @@ const Navigation = () => {
           {/* User Actions */}
           <div className="flex items-center space-x-3">
             <Link to="/postar-trabalho">
-              <Button size="sm" className="btn-hero">
+              <Button size="sm" className="btn-hero my-0 mx-[58px]">
                 <Plus className="h-4 w-4 mr-2" />
                 Publicar
               </Button>
