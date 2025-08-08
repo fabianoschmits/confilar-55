@@ -4,42 +4,57 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Home, 
-  Search, 
-  MessageCircle, 
-  User, 
-  Menu, 
-  Bell,
-  Heart,
-  Settings,
-  LogOut,
-  Plus,
-  Shield,
-  TrendingUp
-} from "lucide-react";
+import { Home, Search, MessageCircle, User, Menu, Bell, Heart, Settings, LogOut, Plus, Shield, TrendingUp } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import confiarLogo from "@/assets/confilar-logo.png";
-
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { isAdmin } = useUserRole();
-  const { signOut } = useAuth();
-
-  const navItems = [
-    { icon: Home, label: "Início", path: "/feed", badge: null, description: "Atividades de todos os usuários" },
-    { icon: TrendingUp, label: "Explorar", path: "/explorar", badge: null, description: "Descubra conteúdo em alta" },
-    { icon: Search, label: "Buscar", path: "/buscar", badge: null, description: "Buscar posts e usuários" },
-    { icon: MessageCircle, label: "Chat", path: "/chat", badge: null, description: "Conversas" },
-    { icon: Bell, label: "Notificações", path: "/notificacoes", badge: null, description: "Notificações" },
-    { icon: User, label: "Perfil", path: "/perfil", badge: null, description: "Meu perfil" },
-  ];
-
+  const {
+    isAdmin
+  } = useUserRole();
+  const {
+    signOut
+  } = useAuth();
+  const navItems = [{
+    icon: Home,
+    label: "Início",
+    path: "/feed",
+    badge: null,
+    description: "Atividades de todos os usuários"
+  }, {
+    icon: TrendingUp,
+    label: "Explorar",
+    path: "/explorar",
+    badge: null,
+    description: "Descubra conteúdo em alta"
+  }, {
+    icon: Search,
+    label: "Buscar",
+    path: "/buscar",
+    badge: null,
+    description: "Buscar posts e usuários"
+  }, {
+    icon: MessageCircle,
+    label: "Chat",
+    path: "/chat",
+    badge: null,
+    description: "Conversas"
+  }, {
+    icon: Bell,
+    label: "Notificações",
+    path: "/notificacoes",
+    badge: null,
+    description: "Notificações"
+  }, {
+    icon: User,
+    label: "Perfil",
+    path: "/perfil",
+    badge: null,
+    description: "Meu perfil"
+  }];
   const isActive = (path: string) => location.pathname === path;
-
-  return (
-    <>
+  return <>
       {/* Desktop Header */}
       <header className="hidden md:flex sticky top-0 z-50 w-full bg-white/98 backdrop-blur-md border-b border-border/30 shadow-soft">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -53,27 +68,15 @@ const Navigation = () => {
 
           {/* Desktop Navigation */}
           <nav className="flex items-center space-x-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  isActive(item.path)
-                    ? "bg-primary text-white"
-                    : "text-foreground hover:bg-muted"
-                }`}
-              >
+            {navItems.map(item => <Link key={item.path} to={item.path} className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${isActive(item.path) ? "bg-primary text-white" : "text-foreground hover:bg-muted"}`}>
                 <div className="relative">
                   <item.icon className="h-5 w-5" />
-                  {item.badge && (
-                    <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-destructive">
+                  {item.badge && <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-destructive">
                       {item.badge}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
-                <span className="font-medium">{item.label}</span>
-              </Link>
-            ))}
+                <span className="text-base text-left text-stone-950 font-semibold">{item.label}</span>
+              </Link>)}
           </nav>
 
           {/* User Actions */}
@@ -84,14 +87,12 @@ const Navigation = () => {
                 Publicar
               </Button>
             </Link>
-            {isAdmin() && (
-              <Link to="/admin">
+            {isAdmin() && <Link to="/admin">
                 <Button variant="outline" size="sm">
                   <Shield className="h-4 w-4 mr-2" />
                   Admin
                 </Button>
-              </Link>
-            )}
+              </Link>}
             <Link to="/configuracoes">
               <Button variant="ghost" size="icon">
                 <Settings className="h-5 w-5" />
@@ -139,63 +140,36 @@ const Navigation = () => {
                     </div>
 
                     <nav className="space-y-2">
-                      {navItems.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
-                            isActive(item.path)
-                              ? "bg-primary text-white"
-                              : "hover:bg-muted"
-                          }`}
-                        >
+                      {navItems.map(item => <Link key={item.path} to={item.path} onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center justify-between p-3 rounded-lg transition-colors ${isActive(item.path) ? "bg-primary text-white" : "hover:bg-muted"}`}>
                           <div className="flex items-center space-x-3">
                             <item.icon className="h-5 w-5" />
                             <span className="font-medium">{item.label}</span>
                           </div>
-                          {item.badge && (
-                            <Badge className="bg-destructive">
+                          {item.badge && <Badge className="bg-destructive">
                               {item.badge}
-                            </Badge>
-                          )}
-                        </Link>
-                      ))}
+                            </Badge>}
+                        </Link>)}
                     </nav>
 
                     <div className="border-t pt-4 space-y-2">
-                      {isAdmin() && (
-                        <Link 
-                          to="/admin"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted"
-                        >
+                      {isAdmin() && <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted">
                           <Shield className="h-5 w-5" />
                           <span>Administração</span>
-                        </Link>
-                      )}
+                        </Link>}
                       
-                      <Link 
-                        to="/configuracoes"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted"
-                      >
+                      <Link to="/configuracoes" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted">
                         <Settings className="h-5 w-5" />
                         <span>Configurações</span>
                       </Link>
                       
-                      <Button 
-                        variant="ghost" 
-                        className="w-full justify-start text-destructive hover:bg-destructive/10"
-                        onClick={async () => {
-                          try {
-                            await signOut();
-                            window.location.href = '/';
-                          } catch (error) {
-                            console.error('Erro ao sair:', error);
-                          }
-                        }}
-                      >
+                      <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10" onClick={async () => {
+                      try {
+                        await signOut();
+                        window.location.href = '/';
+                      } catch (error) {
+                        console.error('Erro ao sair:', error);
+                      }
+                    }}>
                         <LogOut className="h-5 w-5 mr-3" />
                         Sair
                       </Button>
@@ -210,32 +184,18 @@ const Navigation = () => {
         {/* Mobile Bottom Navigation */}
         <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-strong">
           <div className="flex items-center justify-around py-2">
-            {navItems.slice(0, 5).map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors ${
-                  isActive(item.path)
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
+            {navItems.slice(0, 5).map(item => <Link key={item.path} to={item.path} className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-colors ${isActive(item.path) ? "text-primary" : "text-muted-foreground"}`}>
                 <div className="relative">
                   <item.icon className="h-5 w-5" />
-                  {item.badge && (
-                    <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-destructive">
+                  {item.badge && <Badge className="absolute -top-2 -right-2 h-4 w-4 p-0 text-xs bg-destructive">
                       {item.badge}
-                    </Badge>
-                  )}
+                    </Badge>}
                 </div>
                 <span className="text-xs font-medium">{item.label}</span>
-              </Link>
-            ))}
+              </Link>)}
           </div>
         </nav>
       </div>
-    </>
-  );
+    </>;
 };
-
 export default Navigation;
